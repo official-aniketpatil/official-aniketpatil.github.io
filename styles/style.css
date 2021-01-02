@@ -1,5 +1,11 @@
+body {
+  background-image: url('../images/background.jpg');
+}
 .h2 {
   color: darkblue;
+}
+h3 {
+  color: aqua;
 }
 .title-div {
   background-color:darkslateblue;
