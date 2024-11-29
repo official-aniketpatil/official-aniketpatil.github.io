@@ -293,22 +293,22 @@
     const linkedinBadge = document.querySelector('.linkedin-badge');
 
     // Show the LinkedIn badge when the LinkedIn link is clicked
-    linkedinLink.addEventListener('click', (event) => {
-        event.stopPropagation(); // Prevent event from bubbling up
-        linkedinBadge.classList.add('show');
-    });
+    // linkedinLink.addEventListener('click', (event) => {
+    //     event.stopPropagation(); // Prevent event from bubbling up
+    //     linkedinBadge.classList.add('show');
+    // });
 
-    // Close the LinkedIn badge if the user clicks outside the badge or the LinkedIn link
-    document.addEventListener('click', (event) => {
-        if (!linkedinBadge.contains(event.target) && event.target !== linkedinLink) {
-            linkedinBadge.classList.remove('show');
-        }
-    });
+    // // Close the LinkedIn badge if the user clicks outside the badge or the LinkedIn link
+    // document.addEventListener('click', (event) => {
+    //     if (!linkedinBadge.contains(event.target) && event.target !== linkedinLink) {
+    //         linkedinBadge.classList.remove('show');
+    //     }
+    // });
 
-    // Prevent closing the badge when clicking inside the badge
-    linkedinBadge.addEventListener('click', (event) => {
-        event.stopPropagation(); // Prevent event from bubbling up
-    });
+    // // Prevent closing the badge when clicking inside the badge
+    // linkedinBadge.addEventListener('click', (event) => {
+    //     event.stopPropagation(); // Prevent event from bubbling up
+    // });
 </script>
 
 </body>
