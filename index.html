@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aniket Patil - Resume</title>
+    <script src="https://platform.linkedin.com/badges/js/profile.js" async defer></script> <!-- LinkedIn Badge Script -->
     <style>
         /* General Styles */
         body {
@@ -109,6 +110,7 @@
             color: #333;
             font-size: 2.5em;
             font-weight: 700;
+            cursor: pointer; /* Add cursor pointer to indicate it's clickable */
         }
 
         h2, h3 {
@@ -170,8 +172,76 @@
             .carousel-controls {
                 display: none; /* Hide the navigation controls on mobile */
             }
+
+            /* Contact Info Card */
+            .contact-card {
+                width: 100%;
+                max-width: 500px;
+                margin: 20px auto;
+                padding: 20px;
+                background-color: #fff;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .contact-card .contact-info {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+                font-size: 1.1em;
+            }
+
+            .contact-card .contact-info a {
+                text-decoration: none;
+                color: #3498db;
+                font-weight: 600;
+            }
+
+            .contact-card .contact-info a:hover {
+                text-decoration: underline;
+            }
+
+            .contact-card .contact-info span {
+                display: block;
+            }
+
+            .linkedin-badge {
+                margin-top: 10px;
+            }
         }
 
+        /* LinkedIn Badge Styles */
+        .linkedin-badge {
+            display: none; /* Initially hidden */
+            position: absolute;
+            top: 50px; /* Adjust the position as needed */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .linkedin-badge.show {
+            display: block; /* Show badge when hovered */
+        }
+
+        /* Contact Info Styles */
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1.1em;
+        }
+
+        .contact-info a {
+            text-decoration: none;
+            color: #3498db;
+        }
     </style>
 </head>
 <body>
@@ -180,16 +250,22 @@
     <!-- Resume Content Section -->
     <div class="resume-container">
         <header style="text-align: center;">
-            <h1>ANIKET <span style='color: black;'>PATIL</span></h1>
-            <div class="contact-info">
-                <span><a href="mailto:official.aniketpatil@gmail.com">official.aniketpatil@gmail.com</a></span>
-                <span>|</span>
-                <span><a href="tel:+919145752925">+91-9145752925</a></span>
+            <h1 id="profile-heading">ANIKET <span style='color: black;'>PATIL</span></h1>
+
+            <!-- Contact Info Card -->
+            <div class="contact-card">
+                <div class="contact-info">
+                    <span><a href="mailto:official.aniketpatil@gmail.com">official.aniketpatil@gmail.com</a></span>
+                    <span>|</span>
+                    <span><a href="tel:+919145752925">+91-9145752925</a></span>
+                    <span>|</span>
+                    <span><a target="_blank" id="linkedin-link">LinkedIn</a></span>
+                </div>
             </div>
 
             <!-- LinkedIn Badge -->
-            <div class="badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="light" data-type="HORIZONTAL" data-vanity="aniket-patil32" data-version="v1">
-                <a class="badge-base__link LI-simple-link" href="https://in.linkedin.com/in/aniket-patil32?trk=profile-badge" target="_blank">Aniket Patil</a>
+            <div class="badge-base LI-profile-badge linkedin-badge" data-locale="en_US" data-size="large" data-theme="light" data-type="HORIZONTAL" data-vanity="aniket-patil32" data-version="v1">
+                <a class="badge-base__link LI-simple-link" href="https://in.linkedin.com/in/aniket-patil32?trk=profile-badge" target="_blank" aria-label="Aniket Patil LinkedIn Profile"></a>
             </div>
         </header>
 
@@ -316,6 +392,37 @@
     </div>
 
 </div>
+
+<script>
+    const linkedinLink = document.getElementById('linkedin-link');
+    const linkedinBadge = document.querySelector('.linkedin-badge');
+
+    // Show the LinkedIn badge when hovering over the LinkedIn link
+    linkedinLink.addEventListener('mouseenter', () => {
+        linkedinBadge.classList.add('show');
+    });
+
+    // Keep the badge visible when hovering over the badge itself
+    linkedinBadge.addEventListener('mouseenter', () => {
+        linkedinBadge.classList.add('show');
+    });
+
+    // Hide the badge when cursor leaves the LinkedIn link and the badge
+    linkedinLink.addEventListener('mouseleave', () => {
+        if (!linkedinBadge.matches(':hover')) {
+            linkedinBadge.classList.remove('show');
+        }
+    });
+
+    linkedinBadge.addEventListener('mouseleave', () => {
+        linkedinBadge.classList.remove('show');
+    });
+
+    // Show the LinkedIn badge when LinkedIn link is clicked
+    linkedinLink.addEventListener('click', () => {
+        linkedinBadge.classList.add('show');
+    });
+</script>
 
 </body>
 </html>
