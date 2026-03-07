@@ -13,7 +13,6 @@
   <title>GeoLog</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=Bebas+Neue&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  <script src="https://meet.jit.si/external_api.js"></script>
   <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -59,7 +58,7 @@
   }
   .join-input:focus{border-color:rgba(0,180,255,.4);}
   .join-input::placeholder{color:var(--muted);}
-  .room-row{display:flex;gap:8px;}
+  .room-row{display:flex;flex-direction:column;gap:8px;}
   .room-input{
     flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:6px;
     color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:1.75rem;
@@ -68,10 +67,13 @@
   .room-input:focus{border-color:rgba(0,180,255,.4);}
   .room-input::placeholder{color:var(--muted);font-size:.9rem;letter-spacing:.08em;font-family:'IBM Plex Mono',monospace;}
   .gen-btn{
+    align-self:flex-start;
     padding:8px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;
     color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:.62rem;
     letter-spacing:.12em;cursor:pointer;white-space:nowrap;transition:all .15s;
+    text-transform:uppercase;
   }
+  .gen-btn:hover{border-color:rgba(0,180,255,.28);color:var(--text);}
   .gen-btn:active{background:var(--bg2);}
 
   /* invite hint on join screen */
@@ -114,7 +116,6 @@
   .room-badge{
     font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.32em;
     color:var(--amber);text-shadow:0 0 10px rgba(255,171,0,.3);
-    cursor:pointer;-webkit-tap-highlight-color:transparent;
   }
   .conn-status{font-size:.46rem;color:var(--muted);letter-spacing:.1em;}
   .topbar-right{display:flex;align-items:center;gap:8px;}
@@ -128,18 +129,6 @@
     transition:all .18s;-webkit-tap-highlight-color:transparent;white-space:nowrap;
   }
   .leave-btn:active{background:rgba(255,68,85,.15);}
-
-  /* INVITE BUTTON */
-  .invite-btn{
-    display:flex;align-items:center;gap:5px;
-    padding:5px 11px;border-radius:20px;cursor:pointer;
-    background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.22);
-    color:var(--green);font-family:'IBM Plex Mono',monospace;
-    font-size:.48rem;letter-spacing:.14em;text-transform:uppercase;
-    transition:all .18s;-webkit-tap-highlight-color:transparent;white-space:nowrap;
-  }
-  .invite-btn:active{background:rgba(0,230,118,.14);}
-  .invite-icon{font-size:.85rem;}
   .conn-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;
     background:var(--red);box-shadow:0 0 7px var(--red);animation:blink 1s infinite;}
   .conn-dot.ok{background:var(--green);box-shadow:0 0 7px var(--green);animation:none;}
@@ -236,11 +225,6 @@
   }
   .strip::-webkit-scrollbar{display:none;}
   .strip.has-peers{max-height:126px;}
-  .jitsi-stage{
-    display:none;height:38vh;min-height:250px;width:100%;
-    border-top:1px solid var(--border);background:#000;
-  }
-  .jitsi-stage.active{display:block;}
   .self-tile,.peer-tile{
     position:relative;flex-shrink:0;width:86px;height:126px;
     background:var(--panel);border-right:1px solid var(--border);overflow:hidden;
@@ -324,7 +308,7 @@
   .capture-btn:active{transform:scale(.91);}
   .capture-btn.flash-ok{border-color:var(--green);box-shadow:0 0 0 6px rgba(0,230,118,.14),0 0 28px rgba(0,230,118,.28);}
   .cap-icon{font-size:1.25rem;z-index:1;}
-  .cap-meta{font-size:.48rem;color:var(--text2);line-height:2;text-align:right;}
+  .cap-meta{font-size:.48rem;color:var(--text2);line-height:1.7;text-align:right;}
   .cap-meta .v{color:var(--text);}
 
   /* ══ MEMBERS ══ */
@@ -472,8 +456,8 @@
     display:flex;backdrop-filter:blur(14px);
   }
   .nav-tab{
-    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-    cursor:pointer;padding:3px;font-size:.44rem;letter-spacing:.12em;text-transform:uppercase;
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+    cursor:pointer;padding:4px 2px;font-size:.42rem;letter-spacing:.08em;text-transform:uppercase;
     color:var(--muted);transition:color .18s;-webkit-tap-highlight-color:transparent;position:relative;
   }
   .nav-tab svg{width:20px;height:20px;transition:filter .18s;}
@@ -582,7 +566,7 @@
       <div class="room-row">
         <input class="room-input" id="roomCode" placeholder="ROOM" maxlength="8"
           oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"/>
-        <button class="gen-btn" onclick="genRoom()">+ NEW</button>
+        <button class="gen-btn" onclick="genRoom()" title="Generate room code">GENERATE ROOM</button>
       </div>
     </div>
     <div class="join-invite-hint" id="joinInviteHint"></div>
@@ -594,7 +578,7 @@
       <button class="join-btn create" onclick="startJoin(true)">✦ CREATE</button>
       <button class="join-btn join"   onclick="startJoin(false)">▶ JOIN</button>
     </div>
-    <div class="join-note"><b>CREATE</b> a room and share the invite link<br/><b>JOIN</b> an existing room with the code</div>
+    <div class="join-note"><b>CREATE</b> starts a new room<br/><b>JOIN</b> enters with room code</div>
   </div>
 </div>
 
@@ -602,14 +586,11 @@
 <div class="topbar">
   <div class="logo">GEO<span style="-webkit-text-fill-color:var(--green);color:var(--green);">LOG</span></div>
   <div class="topbar-center">
-    <div class="room-badge" id="topRoom" onclick="copyRoomCode()" title="Tap to copy">------</div>
+    <div class="room-badge" id="topRoom">------</div>
     <div class="conn-status" id="connStatus">---</div>
   </div>
   <div class="topbar-right">
     <button class="leave-btn" onclick="leaveRoom()" title="Leave room">✕ LEAVE</button>
-    <button class="invite-btn" onclick="shareInvite()">
-      <span class="invite-icon">📨</span> INVITE
-    </button>
     <div class="conn-dot" id="connDot"></div>
   </div>
 </div>
@@ -659,20 +640,20 @@
     </div>
     <div id="peerTiles" style="display:contents"></div>
   </div>
-  <div class="jitsi-stage" id="jitsiStage"></div>
-
   <!-- Capture bar -->
   <div class="capture-bar">
     <div class="cap-side">
       <button class="icon-btn" id="pauseBtn" onclick="togglePause()">⏸</button>
       <button class="icon-btn" onclick="switchCamera()">⟳</button>
     </div>
-    <button class="capture-btn" id="captureBtn" onclick="captureAndShare()">
+    <button class="capture-btn" id="captureBtn" onclick="captureAndShare()" title="Capture photo">
       <span class="cap-icon">⊙</span>
     </button>
     <div class="cap-meta">
-      <div>SHARED <span class="v" id="captureCount">0</span></div>
+      <div>POSTS <span class="v" id="captureCount">0</span></div>
       <div>PEERS <span class="v" id="capPeers">0</span></div>
+      <div>DATA <span class="v" id="dataUsage">0 KB</span></div>
+      <div>LINK <span class="v" id="connStrength">CHECKING</span></div>
     </div>
   </div>
 </div>
@@ -736,7 +717,7 @@
   <div class="nav-tab active" id="tab-capture" onclick="switchTab('capture')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <circle cx="12" cy="13" r="4"/><path d="M5 7h2l2-2h6l2 2h2a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2z"/>
-    </svg>Capture
+    </svg>Camera
   </div>
   <div class="nav-tab" id="tab-members" onclick="switchTab('members')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -780,14 +761,16 @@ let cameraPaused=false, myMediaStream=null;
 let myVideoOn=true, myAudioOn=true;
 let mediaCalls={}, peerAudios={}, peerStates={};
 let audioUnlockEls=[];
-let jitsiApi=null, jitsiRemoteParticipants=0;
-let activeEngine='jitsi', peerFlowStarted=false, jitsiJoinCompleted=false, jitsiJoinTimer=null;
+let peerFlowStarted=false;
 let currentTab='capture';
 let hostRetryTimer=null, membersRenderTimer=null;
+let connectionMonitorTimer=null;
+let networkUsage={sentApp:0,recvApp:0,sentMedia:0,recvMedia:0};
+let statsSnapshots={};
+let connectionStrength={label:'CHECKING',color:'var(--amber)'};
 
 const AVATARS=['🧑','👨','👩','🧔','👱','🧒','👴','👵','🧑‍💻','🧑‍🔧'];
 const RECONNECT_MS=5000;
-const JITSI_DOMAIN='meet.jit.si';
 
 // ════════════════════════════════
 // STORAGE
@@ -805,84 +788,137 @@ function tstr(ts){ return new Date(ts).toTimeString().slice(0,5); }
 function avatar(name){ return AVATARS[Math.abs([...name].reduce((a,c)=>a+c.charCodeAt(0),0))%AVATARS.length]; }
 function gpsObj(g){ return {latitude:g.latitude,longitude:g.longitude,altitude:g.altitude,accuracy:g.accuracy}; }
 function activePeerCount(){
-  return activeEngine==='jitsi'
-    ? Math.max(0,jitsiRemoteParticipants||0)
-    : Object.keys(connections).length;
+  return Object.keys(connections).length;
 }
-function syncJitsiParticipantCount(){
-  if(!jitsiApi) return;
-  try{
-    const n=Number(jitsiApi.getNumberOfParticipants?.());
-    if(Number.isFinite(n) && n>=0) jitsiRemoteParticipants=n;
-  }catch(_){}
-  updatePeerCount();
+function estimatePayloadBytes(data){
+  try{ return new Blob([JSON.stringify(data)]).size; }
+  catch(_){ return new TextEncoder().encode(JSON.stringify(data)).length; }
 }
-async function switchToPeerFallback(reason){
-  if(activeEngine==='peerjs') return;
-  clearTimeout(jitsiJoinTimer);
-  if(reason) toast(reason);
-  teardownJitsiMeeting();
-  activeEngine='peerjs';
-  await startPeerFlow();
+function formatBytes(bytes){
+  if(bytes<1024) return `${bytes} B`;
+  if(bytes<1024*1024) return `${(bytes/1024).toFixed(bytes<10240?1:0)} KB`;
+  return `${(bytes/(1024*1024)).toFixed(bytes<10*1024*1024?1:0)} MB`;
 }
-function ensureJitsiMeeting(){
-  if(activeEngine!=='jitsi' || jitsiApi || !myRoom || !myName) return;
-  if(typeof window.JitsiMeetExternalAPI!=='function'){ toast('⚠ Jitsi failed to load'); return; }
-  const node=$('jitsiStage'); if(!node) return;
-  node.innerHTML=''; node.classList.add('active');
-  jitsiApi=new window.JitsiMeetExternalAPI(JITSI_DOMAIN,{
-    roomName:'GeoLog_'+myRoom,
-    parentNode:node,
-    userInfo:{displayName:myName},
-    configOverwrite:{prejoinPageEnabled:false},
-  });
-  window.jitsiApi=jitsiApi;
-  jitsiRemoteParticipants=0;
-  jitsiJoinCompleted=false;
-  updatePeerCount();
-  jitsiApi.addListener('videoConferenceJoined',()=>{
-    jitsiJoinCompleted=true;
-    clearTimeout(jitsiJoinTimer);
-    syncJitsiParticipantCount();
-    setStatus('JITSI CONNECTED','var(--green)');
-    dot('ok');
-  });
-  jitsiApi.addListener('participantJoined',()=>{ syncJitsiParticipantCount(); });
-  jitsiApi.addListener('participantLeft',()=>{ syncJitsiParticipantCount(); });
-  jitsiApi.addListener('videoConferenceLeft',()=>{ switchToPeerFallback('Jitsi disconnected — switching to P2P fallback'); });
-  jitsiApi.addListener('conferenceFailed',()=>{ switchToPeerFallback('Jitsi failed — switching to P2P fallback'); });
+function totalDataUsage(){
+  return networkUsage.sentApp+networkUsage.recvApp+networkUsage.sentMedia+networkUsage.recvMedia;
 }
-function teardownJitsiMeeting(){
-  clearTimeout(jitsiJoinTimer);
-  if(jitsiApi){ try{ jitsiApi.dispose(); }catch(_){} jitsiApi=null; }
-  window.jitsiApi=null;
-  jitsiRemoteParticipants=0;
-  const node=$('jitsiStage');
-  if(node){ node.classList.remove('active'); node.innerHTML=''; }
+function renderNetworkStats(){
+  const usage=$('dataUsage');
+  if(usage) usage.textContent=formatBytes(totalDataUsage());
+  const strength=$('connStrength');
+  if(strength){
+    strength.textContent=connectionStrength.label;
+    strength.style.color=connectionStrength.color;
+  }
+}
+function resetNetworkStats(){
+  networkUsage={sentApp:0,recvApp:0,sentMedia:0,recvMedia:0};
+  statsSnapshots={};
+  connectionStrength={label:'CHECKING',color:'var(--amber)'};
+  renderNetworkStats();
+}
+function trackAppData(direction,data){
+  const bytes=estimatePayloadBytes(data);
+  if(direction==='sent') networkUsage.sentApp+=bytes;
+  else networkUsage.recvApp+=bytes;
+  renderNetworkStats();
+}
+function updateStrengthBadge(score){
+  if(activePeerCount()===0){
+    connectionStrength={label:'IDLE',color:'var(--muted)'};
+  }else if(score>=85){
+    connectionStrength={label:'STRONG',color:'var(--green)'};
+  }else if(score>=65){
+    connectionStrength={label:'GOOD',color:'var(--green)'};
+  }else if(score>=40){
+    connectionStrength={label:'FAIR',color:'var(--amber)'};
+  }else{
+    connectionStrength={label:'WEAK',color:'var(--red)'};
+  }
+  renderNetworkStats();
+}
+async function updateConnectionMonitor(){
+  const calls=Object.entries(mediaCalls).filter(([,call])=>call?.peerConnection);
+  if(!calls.length){
+    updateStrengthBadge(0);
+    return;
+  }
+
+  let samples=0;
+  let totalScore=0;
+
+  for(const [pid,call] of calls){
+    try{
+      const stats=await call.peerConnection.getStats();
+      let lossScore=100;
+      let rttScore=100;
+
+      stats.forEach(report=>{
+        const key=`${pid}:${report.id}`;
+        const prev=statsSnapshots[key]||{};
+
+        if(typeof report.bytesSent==='number'){
+          networkUsage.sentMedia+=Math.max(0,report.bytesSent-(prev.bytesSent||0));
+        }
+        if(typeof report.bytesReceived==='number'){
+          networkUsage.recvMedia+=Math.max(0,report.bytesReceived-(prev.bytesReceived||0));
+        }
+        statsSnapshots[key]={
+          bytesSent:report.bytesSent||0,
+          bytesReceived:report.bytesReceived||0,
+        };
+
+        if(report.type==='inbound-rtp' || report.type==='remote-inbound-rtp'){
+          const lost=report.packetsLost||0;
+          const received=report.packetsReceived||0;
+          const total=lost+received;
+          if(total>20){
+            const lossPct=(lost/total)*100;
+            lossScore=Math.min(lossScore,Math.max(0,100-(lossPct*8)));
+          }
+        }
+
+        if(typeof report.currentRoundTripTime==='number'){
+          const rttMs=report.currentRoundTripTime*1000;
+          if(rttMs<=80) rttScore=Math.min(rttScore,100);
+          else if(rttMs<=180) rttScore=Math.min(rttScore,82);
+          else if(rttMs<=350) rttScore=Math.min(rttScore,62);
+          else if(rttMs<=600) rttScore=Math.min(rttScore,40);
+          else rttScore=Math.min(rttScore,20);
+        }
+      });
+
+      totalScore+=Math.round((lossScore*0.6)+(rttScore*0.4));
+      samples++;
+    }catch(_){}
+  }
+
+  updateStrengthBadge(samples?Math.round(totalScore/samples):35);
+  renderNetworkStats();
+}
+function startConnectionMonitor(){
+  if(connectionMonitorTimer) clearInterval(connectionMonitorTimer);
+  connectionMonitorTimer=setInterval(updateConnectionMonitor,5000);
+  updateConnectionMonitor();
+}
+function stopConnectionMonitor(){
+  if(connectionMonitorTimer){
+    clearInterval(connectionMonitorTimer);
+    connectionMonitorTimer=null;
+  }
 }
 async function startPeerFlow(){
-  if(peerFlowStarted || activeEngine!=='peerjs') return;
+  if(peerFlowStarted) return;
   peerFlowStarted=true;
   setStatus('CONNECTING PEERJS…','var(--amber)');
   dot('partial');
+  resetNetworkStats();
+  await startCamera();
   await probeIce();
   initPeer();
 }
 async function startHybridCallFlow(){
-  activeEngine='jitsi';
   peerFlowStarted=false;
-  if(typeof window.JitsiMeetExternalAPI==='function'){
-    setStatus('CONNECTING JITSI…','var(--amber)');
-    dot('partial');
-    ensureJitsiMeeting();
-    clearTimeout(jitsiJoinTimer);
-    jitsiJoinTimer=setTimeout(async()=>{
-      if(jitsiJoinCompleted) return;
-      await switchToPeerFallback('Jitsi join slow — switching to P2P fallback');
-    },12000);
-    return;
-  }
-  activeEngine='peerjs';
   await startPeerFlow();
 }
 
@@ -909,7 +945,10 @@ function toast(msg,ms=2700){
 })();
 
 function genRoom(){
-  $('roomCode').value=Math.random().toString(36).slice(2,8).toUpperCase();
+  const room = Math.random().toString(36).slice(2,8).toUpperCase();
+  $('roomCode').value=room;
+  $('roomCode').focus();
+  $('roomCode').setSelectionRange(0, room.length);
 }
 
 // ════════════════════════════════
@@ -917,9 +956,14 @@ function genRoom(){
 // ════════════════════════════════
 async function startJoin(creator){
   const name=$('joinName').value.trim();
-  const room=$('roomCode').value.trim().toUpperCase();
+  let room=$('roomCode').value.trim().toUpperCase();
   const err=$('joinErr');
-  if(!name||!room){ err.textContent='⚠ Enter your name and a room code'; err.style.display='block'; return; }
+  if(!name){ err.textContent='⚠ Enter your name'; err.style.display='block'; return; }
+  if(creator && !room){
+    genRoom();
+    room=$('roomCode').value.trim().toUpperCase();
+  }
+  if(!room){ err.textContent='⚠ Enter a room code or tap RANDOM'; err.style.display='block'; return; }
   if(room.length<3){ err.textContent='⚠ Room code must be 3+ characters'; err.style.display='block'; return; }
   err.style.display='none';
 
@@ -939,30 +983,14 @@ async function startJoin(creator){
   memberMap={};
   memberMap['__self']={name:myName,gps:null,lastSeen:Date.now(),emoji:avatar(myName),isSelf:true};
 
-  await startCamera();
   await startHybridCallFlow();
 
   setTimeout(()=>{
     $('joinScreen').style.display='none';
     schedMembersRender();
     updateBadges();
-    if(creator) toast(`✦ Room ${room} created — tap INVITE to share!`,4500);
+    if(creator) toast(`✦ Room ${room} created`,2800);
   },900);
-}
-
-// ════════════════════════════════
-// INVITE
-// ════════════════════════════════
-function inviteUrl(){
-  const base=location.href.split('?')[0].split('#')[0];
-  return `${base}?room=${encodeURIComponent(myRoom)}`;
-}
-
-function shareInvite(){
-  if(!myRoom){ toast('⚠ Join a room first'); return; }
-  const url=inviteUrl();
-  window._waMsg=`Join me on GeoLog! 📍\nRoom: *${myRoom}*\nTap to join: ${url}`;
-  openWa('📨 INVITE TO ROOM', `Send invite link for room ${myRoom}`);
 }
 
 function leaveRoom(){
@@ -971,6 +999,7 @@ function leaveRoom(){
   Object.keys(connWatchdogs).forEach(k => delete connWatchdogs[k]);
   Object.keys(connRetries).forEach(k => delete connRetries[k]);
   clearTimeout(hostRetryTimer); hostRetryTimer = null;
+  stopConnectionMonitor();
 
   // Stop GPS
   if(gpsWatcher!==null){ navigator.geolocation.clearWatch(gpsWatcher); gpsWatcher=null; }
@@ -988,9 +1017,8 @@ function leaveRoom(){
   Object.values(peerAudios).forEach(a=>{ a.srcObject=null; a.remove(); });
   peerAudios={};
 
-  // Destroy peer / jitsi
+  // Destroy peer
   if(peer){ try{peer.destroy();}catch(_){} peer=null; }
-  teardownJitsiMeeting();
 
   // Clear peer tiles
   const pt=document.getElementById('peerTiles'); if(pt) pt.innerHTML='';
@@ -999,7 +1027,7 @@ function leaveRoom(){
   connections={}; memberMap={}; feedItems=[]; feedUnread=0;
   myVideoOn=true; myAudioOn=true; cameraPaused=false;
   peerStates={}; audioUnlockEls=[];
-  activeEngine='jitsi'; peerFlowStarted=false; jitsiJoinCompleted=false;
+  peerFlowStarted=false;
   myName=''; myRoom=''; myPeerId=''; isCreator=false;
 
   // Reset UI
@@ -1011,6 +1039,9 @@ function leaveRoom(){
   document.getElementById('membersList').innerHTML='';
   document.getElementById('captureCount').textContent='0';
   document.getElementById('capPeers').textContent='0';
+  document.getElementById('dataUsage').textContent='0 KB';
+  document.getElementById('connStrength').textContent='CHECKING';
+  document.getElementById('connStrength').style.color='var(--amber)';
   document.getElementById('gpsDot').className='gps-dot';
   document.getElementById('gpsCoords').textContent='Location off';
   document.getElementById('gpsAcc').textContent='';
@@ -1026,16 +1057,10 @@ function leaveRoom(){
   document.getElementById('roomCode').value='';
   updateBadges(); switchTab('capture');
   dot(''); setStatus('---','var(--muted)');
+  resetNetworkStats();
 
   // Show join screen
   document.getElementById('joinScreen').style.display='flex';
-}
-
-function copyRoomCode(){
-  if(!myRoom) return;
-  navigator.clipboard.writeText(myRoom)
-    .then(()=>toast(`📋 Code "${myRoom}" copied`))
-    .catch(()=>toast('Room: '+myRoom));
 }
 
 // ════════════════════════════════
@@ -1132,6 +1157,7 @@ async function probeIce(){
     // Use all working providers + STUN
     const turnServers = working.flatMap(p => p.servers);
     activeIceServers = [...STUN_ONLY, ...turnServers];
+    hideRelayWarning();
     console.log('[ICE] relay working via:', working.map(p=>p.label).join(', '));
   } else {
     // No TURN reachable — STUN only, warn user
@@ -1143,21 +1169,13 @@ async function probeIce(){
 }
 
 function showRelayWarning(){
-  // Subtle persistent banner so users know why they might fail to connect
-  let banner = document.getElementById('relayWarning');
-  if(!banner){
-    banner = document.createElement('div');
-    banner.id = 'relayWarning';
-    banner.style.cssText = `
-      position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+64px);left:0;right:0;
-      background:rgba(255,171,0,.1);border-top:1px solid rgba(255,171,0,.25);
-      padding:6px 14px;font-size:.5rem;color:var(--amber);letter-spacing:.08em;
-      z-index:200;text-align:center;line-height:1.7;
-    `;
-    banner.innerHTML = '⚠ TURN relay unreachable on this network · P2P may fail for some peers · Try a different Wi-Fi or mobile data';
-    document.body.appendChild(banner);
-    setTimeout(() => banner.remove(), 12000);
-  }
+  setStatus('LIMITED NETWORK', 'var(--amber)');
+  toast('Limited network: some peers may fail on this Wi-Fi', 4200);
+}
+
+function hideRelayWarning(){
+  const banner = document.getElementById('relayWarning');
+  if(banner) banner.remove();
 }
 
 const PEER_CONFIG = () => ({
@@ -1171,7 +1189,7 @@ const PEER_CONFIG = () => ({
 
 // Per-peer connection watchdog timers (cleared on open, fired on timeout)
 const connWatchdogs = {};
-const CONN_OPEN_TIMEOUT_MS = 18000; // 18 s — enough time for TURN relay negotiation
+const CONN_OPEN_TIMEOUT_MS = 15000;
 const CONN_RETRY_LIMIT = 3;
 const connRetries = {}; // pid → attempt count
 
@@ -1364,7 +1382,14 @@ function setupConn(conn){
   });
 }
 
-const send=(conn,data)=>{ try{ if(conn?.open) conn.send(data); }catch(_){} };
+const send=(conn,data)=>{
+  try{
+    if(conn?.open){
+      trackAppData('sent',data);
+      conn.send(data);
+    }
+  }catch(_){}
+};
 const broadcast=(data,skip=null)=>Object.entries(connections).forEach(([p,c])=>{ if(p!==skip) send(c,data); });
 
 function updatePeerCount(){
@@ -1373,12 +1398,14 @@ function updatePeerCount(){
   dot(n>0?'ok':'partial');
   updateStrip(); updateBadges();
   setStatus(n>0?`${n} PEER${n>1?'S':''} CONNECTED`:'ALONE',n>0?'var(--green)':'var(--muted)');
+  if(n===0) updateStrengthBadge(0);
 }
 
 // ════════════════════════════════
 // MESSAGE HANDLER
 // ════════════════════════════════
 function handleMsg(from,msg){
+  trackAppData('recv',msg);
   switch(msg.type){
     case 'hello':
       memberMap[from]={name:msg.name||'?',gps:msg.gps||null,lastSeen:Date.now(),emoji:avatar(msg.name||'?')};
@@ -1474,7 +1501,7 @@ async function startCamera(){
   if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
   try{
     camStream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode,width:{ideal:1280},height:{ideal:720}},audio:false
+      video:{facingMode,width:{ideal:1920},height:{ideal:1080}},audio:false
     });
     $('camVideo').srcObject=camStream;
     $('camInit').style.display='none';
@@ -1487,12 +1514,13 @@ async function buildMediaStream(){
   if(myMediaStream) myMediaStream.getAudioTracks().forEach(t=>t.stop());
   const prev=$('selfPreview');
   try{
-    const aud=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    const aud=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,sampleRate:48000},video:false});
     myMediaStream=new MediaStream([...camStream.getVideoTracks(),...aud.getAudioTracks()]);
   }catch(_){
     myMediaStream=new MediaStream([...camStream.getVideoTracks()]);
   }
   prev.srcObject=new MediaStream(camStream.getVideoTracks());
+  startConnectionMonitor();
   // Stream is ready — drain any peers that were waiting
   drainMediaQueue();
   // Re-call all already-connected peers with the new stream
@@ -1720,10 +1748,6 @@ function removePeerTile(pid){
 }
 
 function updateStrip(){
-  if(activeEngine==='jitsi'){
-    $('strip').classList.remove('has-peers');
-    return;
-  }
   $('strip').classList.toggle('has-peers',activePeerCount()>0);
 }
 
@@ -1775,7 +1799,7 @@ async function captureAndShare(){
     lines.forEach((l,i)=>ctx.fillText(l,7,h-bh+(i+1)*(fs+4)-1));
   }
 
-  const photo=c.toDataURL('image/jpeg',.62);
+  const photo=c.toDataURL('image/jpeg',.55);
   const gps=gpsData?gpsObj(gpsData):null;
   const ts=Date.now();
 
@@ -1881,7 +1905,7 @@ setInterval(schedMembersRender, 8000); // refresh "ago" labels
 // ════════════════════════════════
 function addFeedItem(item){
   feedItems.unshift(item);
-  if(feedItems.length>120) feedItems.length=120;
+  if(feedItems.length>80) feedItems.length=80;
   renderFeed();
 }
 
