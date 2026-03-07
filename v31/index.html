@@ -1344,9 +1344,10 @@ async function probeIce(){
     console.log('[ICE] relay working via:', working.map(p=>p.label).join(', '));
   } else {
     iceHasRelay = false;
-    const allTurnServers = TURN_PROVIDERS.flatMap(p => p.servers);
-    activeIceServers = [...STUN_ONLY, ...allTurnServers];
-    console.warn('[ICE] probe failed, using all TURN servers anyway');
+    // Use only STUN servers if TURN probing fails completely
+    activeIceServers = STUN_ONLY;
+    console.warn('[ICE] probe failed, falling back to STUN-only');
+    showRelayWarning();
   }
 }
 
@@ -1377,7 +1378,7 @@ const connRetries = {}; // pid → attempt count
 // PEER — FULL MESH + HOST RE-ELECTION
 // ════════════════════════════════
 const hostId=()=>'GL-'+myRoom;
-const uniqId=()=>'GL-'+myRoom+'-'+myName.replace(/\W/g,'').slice(0,8)+'-'+Math.random().toString(36).slice(2,5);
+const uniqId=()=>'GL-'+myRoom+'-'+myName.replace(/\W/g,'').slice(0,8)+'-'+Date.now().toString(36).slice(-4)+'-'+Math.random().toString(36).slice(2,5);
 
 function makePeer(id, onOpen){
   const p = new Peer(id, PEER_CONFIG());
@@ -1405,16 +1406,30 @@ function initPeer(){
 
   peer.on('error', e => {
     console.warn('[peer]', e.type, e.message||'');
-    if(e.type === 'unavailable-id' && isCreator){
-      toast('Room exists — joining…'); isCreator = false;
-      peer.destroy(); peer = null; setTimeout(initPeer, 500); return;
+    if(e.type === 'unavailable-id'){
+      if(isCreator){
+        toast('Room exists — joining…'); isCreator = false;
+        peer.destroy(); peer = null; setTimeout(initPeer, 500); return;
+      } else {
+        // Generate new unique ID and retry
+        peer.destroy(); peer = null; setTimeout(initPeer, 1000); return;
+      }
     }
     if(e.type === 'peer-unavailable'){
       setStatus('WAITING FOR HOST…','var(--amber)');
       clearTimeout(hostRetryTimer);
       hostRetryTimer = setTimeout(connectHost, RECONNECT_MS); return;
     }
-    if(e.type === 'network' || e.type === 'server-error'){
+    if(e.type === 'network' || e.type === 'server-error' || e.type === 'webrtc'){
+      setStatus('CONNECTION ERROR','var(--red)');
+      // Exponential backoff for network errors
+      const retryDelay = Math.min(1000 * Math.pow(2, (connRetries[myPeerId] || 0)), 10000);
+      connRetries[myPeerId] = (connRetries[myPeerId] || 0) + 1;
+      setTimeout(() => {
+        if(peer && peer.destroyed) initPeer();
+      }, retryDelay);
+      return;
+    }
       setStatus('RECONNECTING…','var(--amber)'); dot('partial');
       return;
     }
@@ -1488,6 +1503,10 @@ function setupConn(conn){
       setStatus(`RETRYING (${attempts}/${CONN_RETRY_LIMIT})…`, 'var(--amber)');
       // Close the stale conn, try again after brief delay
       try{ conn.close(); }catch(_){}
+      // Exponential backoff with jitter
+      const baseDelay = 2000 * attempts;
+      const jitter = Math.random() * 1000;
+      const retryDelay = baseDelay + jitter;
       setTimeout(() => {
         if(!peer || peer.destroyed) return;
         // Only retry direct-to-peer connections (not host connections handled by hostRetryTimer)
@@ -1496,7 +1515,7 @@ function setupConn(conn){
         } else {
           connectHost();
         }
-      }, 2000 * attempts); // back-off: 2s, 4s, 6s
+      }, retryDelay);
     } else {
       delete connRetries[pid];
       setStatus('CONN FAILED','var(--red)');
@@ -1913,6 +1932,9 @@ function callPeer(pid){
   // ── Glare prevention: only the greater ID initiates ──
   if(myPeerId < pid) return; // we are the lesser — we answer, not call
 
+  // Prevent calling if already in progress
+  if(mediaCalls[pid]?.peerConnection?.signalingState === 'have-local-offer') return;
+
   console.log('[call] initiating to', pid);
   try{ if(mediaCalls[pid]){ mediaCalls[pid].close(); delete mediaCalls[pid]; } }catch(_){}
   try{
@@ -1926,6 +1948,14 @@ function callPeer(pid){
 function answerCall(call){
   const pid = call.peer;
   console.log('[call] incoming from', pid);
+  
+  // Prevent answering if we're already in a call with this peer
+  const existing = mediaCalls[pid];
+  if(existing?.peerConnection?.signalingState === 'stable'){
+    console.log('[call] already connected to', pid, '- ignoring duplicate');
+    return;
+  }
+  
   // Close any stale outgoing call to the same peer
   try{ if(mediaCalls[pid]){ mediaCalls[pid].close(); delete mediaCalls[pid]; } }catch(_){}
   mediaCalls[pid] = call;
@@ -1961,6 +1991,17 @@ function wireCall(call, pid){
 
   call.on('error', e => {
     console.warn('[call error]', pid, e);
+    // Handle WebRTC state errors gracefully
+    if(e.message && e.message.includes('InvalidStateError')){
+      console.warn('[call] WebRTC state error, cleaning up connection');
+      try{ call.close(); }catch(_){}
+      delete mediaCalls[pid];
+      // Wait longer before retry for state errors
+      setTimeout(() => {
+        if(connections[pid]?.open && !mediaCalls[pid]) callPeerWhenReady(pid);
+      }, 5000);
+      return;
+    }
     delete mediaCalls[pid];
     setTimeout(() => {
       if(connections[pid]?.open && !mediaCalls[pid]) callPeerWhenReady(pid);
