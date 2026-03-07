@@ -219,6 +219,72 @@
 
     canvas#snap{display:none;}
 
+    /* ── PAUSE OVERLAY ── */
+    .paused-overlay{
+      position:absolute;inset:0;
+      background:rgba(5,8,16,0.82);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:10px;z-index:8;
+      opacity:0;pointer-events:none;
+      transition:opacity 0.25s;
+      backdrop-filter:blur(3px);
+    }
+    .paused-overlay.show{opacity:1;pointer-events:all;}
+    .paused-icon{font-size:3rem;opacity:0.6;}
+    .paused-label{font-size:0.65rem;letter-spacing:0.25em;color:var(--muted);text-transform:uppercase;}
+    .resume-btn{
+      padding:10px 26px;
+      background:transparent;border:1px solid var(--blue);border-radius:3px;
+      color:var(--blue);font-family:'IBM Plex Mono',monospace;
+      font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;
+      cursor:pointer;box-shadow:0 0 16px var(--glow-b);margin-top:6px;
+    }
+    .resume-btn:active{background:rgba(0,180,255,0.1);}
+
+    /* pause button */
+    .pause-btn{
+      width:38px;height:38px;background:var(--bg2);
+      border:1px solid var(--border);border-radius:50%;
+      color:var(--muted);font-size:0.85rem;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      -webkit-tap-highlight-color:transparent;
+      transition:border-color 0.2s,color 0.2s;
+    }
+    .pause-btn.paused{border-color:rgba(255,171,0,0.4);color:var(--amber);}
+
+    /* ── MY LOCATION BUTTON (Members page) ── */
+    .my-location-bar{
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      display:flex;gap:8px;
+      background:var(--panel);
+    }
+    .loc-share-btn{
+      flex:1;padding:10px 12px;
+      background:transparent;
+      border:1px solid rgba(0,230,118,0.3);
+      border-radius:4px;
+      color:var(--green);
+      font-family:'IBM Plex Mono',monospace;
+      font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+      transition:all 0.2s;
+    }
+    .loc-share-btn:active{background:rgba(0,230,118,0.08);}
+    .loc-wa-btn{
+      flex:1;padding:10px 12px;
+      background:transparent;
+      border:1px solid rgba(37,211,102,0.35);
+      border-radius:4px;
+      color:#25d366;
+      font-family:'IBM Plex Mono',monospace;
+      font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+      transition:all 0.2s;
+    }
+    .loc-wa-btn:active{background:rgba(37,211,102,0.08);}
+    .loc-no-gps{font-size:0.58rem;color:var(--muted);text-align:center;padding:8px;width:100%;}
+
     /* Motion alert settings inline */
     .alert-settings{padding:10px 12px 0;display:flex;flex-direction:column;gap:8px;}
     .alert-toggle-row{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
@@ -251,15 +317,26 @@
     <div>
       <div class="join-label">Room Code</div>
       <div class="room-row">
-        <input class="room-input" id="roomCode" placeholder="ROOM" maxlength="8" style="text-transform:uppercase"/>
-        <button class="gen-btn" onclick="genRoom()">NEW ROOM</button>
+        <input class="room-input" id="roomCode" placeholder="ROOM" maxlength="8" oninput="this.value=this.value.toUpperCase()"/>
+        <button class="gen-btn" onclick="genRoom()">+ NEW</button>
       </div>
     </div>
-    <div class="join-err" id="joinErr">⚠ Please enter your name and room code</div>
-    <button class="join-btn" onclick="joinRoom()">▶ JOIN ROOM</button>
+    <div class="join-err" id="joinErr">⚠ Please enter your name and a room code</div>
+
+    <!-- Connecting state shown after tap -->
+    <div id="connectingState" style="display:none;text-align:center;padding:4px 0">
+      <div style="font-size:0.6rem;color:var(--amber);letter-spacing:0.15em" id="connectingMsg">CONNECTING…</div>
+      <div style="font-size:0.52rem;color:var(--muted);margin-top:4px">This may take a few seconds</div>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="join-btn" style="flex:1;background:rgba(0,230,118,0.05);border-color:var(--green);color:var(--green)" onclick="joinRoom(true)">✦ CREATE</button>
+      <button class="join-btn" style="flex:1" onclick="joinRoom(false)">▶ JOIN</button>
+    </div>
     <div class="join-note">
-      Share the room code with others.<br/>
-      Everyone must be online to connect.
+      <b style="color:var(--text)">CREATE</b> a new room → share the code<br/>
+      <b style="color:var(--text)">JOIN</b> an existing room → type the code<br/>
+      Everyone must be online at the same time
     </div>
   </div>
 </div>
@@ -268,8 +345,8 @@
 <div class="topbar">
   <div class="logo">GEO<span>LOG</span></div>
   <div class="topbar-center">
-    <div class="room-badge" id="topRoom">------</div>
-    <div class="peer-count">PEERS: <span id="peerCountEl">0</span></div>
+    <div class="room-badge" id="topRoom" onclick="copyRoomCode()" style="cursor:pointer" title="Tap to copy room code">------</div>
+    <div class="peer-count">PEERS: <span id="peerCountEl">0</span> &nbsp;·&nbsp; <span id="connStatusLabel" style="color:var(--muted)">---</span></div>
   </div>
   <div class="conn-dot" id="connDot"></div>
 </div>
@@ -292,6 +369,12 @@
       </div>
     </div>
     <div class="flash" id="flashEl"></div>
+    <!-- PAUSED OVERLAY -->
+    <div class="paused-overlay" id="pausedOverlay">
+      <div class="paused-icon">⏸</div>
+      <div class="paused-label">Camera Paused</div>
+      <button class="resume-btn" onclick="togglePause()">▶ RESUME</button>
+    </div>
     <div class="cam-init" id="camInit">
       <div style="font-size:2.5rem;opacity:0.3">📷</div>
       <p>CAMERA NOT ACTIVE</p>
@@ -299,14 +382,17 @@
     </div>
   </div>
   <div class="capture-bar">
-    <div class="cap-meta">
-      <div>SHARED: <span class="v" id="captureCount">0</span></div>
-      <div>PEERS: <span class="v" id="capPeers">0</span></div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <button class="pause-btn" id="pauseBtn" onclick="togglePause()" title="Pause / Resume camera">⏸</button>
+      <button class="switch-btn" onclick="switchCamera()" title="Switch camera">⟳</button>
     </div>
     <button class="capture-btn" id="captureBtn" onclick="captureAndShare()">
       <span class="cap-icon">⊙</span>
     </button>
-    <button class="switch-btn" onclick="switchCamera()">⟳</button>
+    <div class="cap-meta" style="text-align:right">
+      <div>SHARED: <span class="v" id="captureCount">0</span></div>
+      <div>PEERS: <span class="v" id="capPeers">0</span></div>
+    </div>
   </div>
 
   <!-- Motion alert settings on capture page -->
@@ -336,6 +422,19 @@
       <div style="font-size:0.55rem;color:var(--muted)" id="membersSubtitle">0 online</div>
     </div>
     <div style="font-size:0.55rem;color:var(--muted)">AUTO-UPDATES</div>
+  </div>
+
+  <!-- MY LOCATION SHARE BAR -->
+  <div class="my-location-bar" id="myLocBar">
+    <button class="loc-share-btn" onclick="shareLocationToGroup()" title="Share your location in group chat">
+      📍 SHARE TO GROUP
+    </button>
+    <button class="loc-wa-btn" onclick="shareLocationWhatsApp()" title="Send Google Maps link via WhatsApp">
+      💬 SEND VIA WHATSAPP
+    </button>
+  </div>
+  <div id="myLocNoGps" style="display:none" class="my-location-bar">
+    <div class="loc-no-gps">⚠ GPS not locked yet — location unavailable</div>
   </div>
   <div class="alert-banner" id="alertBanner">
     <div class="alert-banner-icon">⚠️</div>
@@ -430,7 +529,7 @@ function genRoom(){
   const code=Math.random().toString(36).substring(2,8).toUpperCase();
   document.getElementById('roomCode').value=code;
 }
-function showToast(msg,dur=2500){
+function showToast(msg, dur=2500){
   const t=document.getElementById('toast');
   t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),dur);
@@ -440,93 +539,162 @@ function myEmoji(){ return AVATARS[Math.abs(myName.split('').reduce((a,c)=>a+c.c
 function nameEmoji(name){ return AVATARS[Math.abs(name.split('').reduce((a,c)=>a+c.charCodeAt(0),0))%AVATARS.length]; }
 
 // ─── JOIN ROOM ───
-async function joinRoom(){
+async function joinRoom(creator){
   const name=document.getElementById('joinName').value.trim();
   const room=document.getElementById('roomCode').value.trim().toUpperCase();
   if(!name||!room){ document.getElementById('joinErr').style.display='block'; return; }
-  myName=name; myRoom=room;
+  if(room.length < 4){ document.getElementById('joinErr').style.display='block'; document.getElementById('joinErr').textContent='⚠ Room code must be at least 4 characters'; return; }
+
+  myName=name; myRoom=room; isCreator=!!creator;
   saveLocal();
   document.getElementById('joinErr').style.display='none';
-  document.getElementById('joinScreen').style.display='none';
-  document.getElementById('topRoom').textContent=room;
 
-  // Add self to memberMap
-  memberMap[myPeerId||'self']={name:myName, gps:null, lastSeen:Date.now(), emoji:myEmoji(), isSelf:true};
+  // Show connecting state inside card
+  document.getElementById('connectingState').style.display='block';
+  document.getElementById('connectingMsg').textContent = creator ? 'CREATING ROOM…' : 'JOINING ROOM…';
+
+  document.getElementById('topRoom').textContent=room;
+  memberMap['self']={name:myName, gps:null, lastSeen:Date.now(), emoji:myEmoji(), isSelf:true};
 
   initPeer();
   startGPS();
   await startCamera();
   await requestMotion();
-  renderMembers();
+
+  // Hide join screen after brief delay to show connecting message
+  setTimeout(()=>{
+    document.getElementById('joinScreen').style.display='none';
+    renderMembers();
+    updateBadges();
+    if(creator) showToast('✦ Room "'+room+'" created — tap code to copy & share!', 4000);
+  }, 1200);
 }
 
 // ─── PEERJS ───
+let isCreator = false;
+
 function initPeer(){
-  // PeerID = room+username+random to avoid collision
-  const uid = myRoom+'_'+myName.replace(/\s/g,'')+'_'+Math.random().toString(36).slice(2,6);
-  peer = new Peer(uid, { debug:0 });
+  // Creator claims the deterministic host ID = "GL-ROOMCODE"
+  // Joiners get a unique ID = "GL-ROOMCODE-NAME-RAND"
+  const hostId = 'GL-' + myRoom;
+  const joinId  = 'GL-' + myRoom + '-' + myName.replace(/\W/g,'').slice(0,8) + '-' + Math.random().toString(36).slice(2,5);
+  const myId    = isCreator ? hostId : joinId;
 
-  peer.on('open', id=>{
-    myPeerId=id;
-    document.getElementById('connDot').className='conn-dot ok';
-    showToast('✅ Connected to network');
+  setConnStatus('CONNECTING…', 'var(--amber)');
 
-    // Announce to room by connecting to "well-known" room host IDs
-    // Strategy: try connecting to others who may be in the room
-    // We broadcast our presence via the room-specific peer ID
-    announcePresence();
+  peer = new Peer(myId, { debug: 0 });
+
+  peer.on('open', id => {
+    myPeerId = id;
+    // Update self key in memberMap
+    const selfKey = Object.keys(memberMap).find(k => memberMap[k].isSelf);
+    if(selfKey && selfKey !== id){
+      memberMap[id] = memberMap[selfKey];
+      delete memberMap[selfKey];
+    }
+    setConnStatus(isCreator ? 'HOSTING' : 'JOINED', 'var(--green)');
+    document.getElementById('connDot').className = 'conn-dot ok';
+
+    if(isCreator){
+      showToast('✦ Room created — share the code!');
+      // Host just listens for incoming connections
+    } else {
+      // Joiner connects to the host
+      connectToHost(hostId);
+    }
   });
 
-  peer.on('connection', conn=>{ setupConn(conn, false); });
-  peer.on('error', e=>{
-    console.warn('Peer error:', e.type);
-    if(e.type==='unavailable-id') { showToast('⚠ Name taken in room, try another'); }
-    document.getElementById('connDot').className='conn-dot';
+  peer.on('connection', conn => { setupConn(conn); });
+
+  peer.on('error', e => {
+    console.warn('Peer error:', e.type, e);
+    if(e.type === 'unavailable-id'){
+      // Host ID taken — means someone else is creator, connect as joiner
+      if(isCreator){
+        showToast('Room exists — connecting as member…');
+        isCreator = false;
+        peer.destroy();
+        peer = null;
+        // Re-init as joiner
+        setTimeout(initPeer, 800);
+        return;
+      }
+    }
+    if(e.type === 'peer-unavailable'){
+      setConnStatus('HOST NOT FOUND', 'var(--red)');
+      showToast('⚠ Host not online yet — is the room creator connected?', 4000);
+      // Retry after 4s
+      setTimeout(() => connectToHost('GL-'+myRoom), 4000);
+      return;
+    }
+    if(e.type === 'network' || e.type === 'disconnected'){
+      setConnStatus('RECONNECTING…', 'var(--amber)');
+      document.getElementById('connDot').className = 'conn-dot partial';
+    }
   });
-  peer.on('disconnected', ()=>{ document.getElementById('connDot').className='conn-dot'; peer.reconnect(); });
+
+  peer.on('disconnected', () => {
+    setConnStatus('RECONNECTING…', 'var(--amber)');
+    document.getElementById('connDot').className = 'conn-dot partial';
+    peer.reconnect();
+  });
 }
 
-function announcePresence(){
-  // The "host" peer ID for a room is deterministic: room name itself
-  // Everyone tries to connect to room host peer. First one becomes host.
-  const hostId = 'GEOLOG_'+myRoom;
-  if(myPeerId === hostId) return; // we ARE the host
-
-  const conn = peer.connect(hostId, {reliable:true});
-  setupConn(conn, true);
+function connectToHost(hostId){
+  if(!peer || peer.destroyed) return;
+  setConnStatus('FINDING HOST…', 'var(--amber)');
+  const conn = peer.connect(hostId, { reliable: true, serialization: 'json' });
+  setupConn(conn);
 }
 
-function setupConn(conn, outgoing){
+function setConnStatus(label, color){
+  const el = document.getElementById('connStatusLabel');
+  if(el){ el.textContent = label; el.style.color = color; }
+  // also update the connecting modal if still visible
+  const cm = document.getElementById('connectingMsg');
+  if(cm) cm.textContent = label;
+}
+
+function copyRoomCode(){
+  navigator.clipboard.writeText(myRoom).then(()=>{
+    showToast('📋 Room code "'+myRoom+'" copied!');
+  }).catch(()=>{
+    showToast('Room code: '+myRoom);
+  });
+}
+
+function setupConn(conn){
   conn.on('open', ()=>{
-    connections[conn.peer]=conn;
+    connections[conn.peer] = conn;
     updatePeerCount();
+    setConnStatus('CONNECTED', 'var(--green)');
+    document.getElementById('connDot').className = 'conn-dot ok';
 
-    // Send hello
-    send(conn, {type:'hello', name:myName, gps:gpsData ? {
+    // Send hello with my info
+    send(conn, { type:'hello', name:myName, peerId:myPeerId, gps: gpsData ? {
       latitude:gpsData.latitude, longitude:gpsData.longitude,
       altitude:gpsData.altitude, accuracy:gpsData.accuracy
-    }:null });
+    } : null });
 
-    // Update member
     if(!memberMap[conn.peer]){
-      memberMap[conn.peer]={name:'Unknown',gps:null,lastSeen:Date.now(),emoji:'👤'};
+      memberMap[conn.peer] = { name:'...', gps:null, lastSeen:Date.now(), emoji:'👤' };
       renderMembers();
     }
   });
 
-  conn.on('data', data=>{ handleMessage(conn.peer, data); });
+  conn.on('data', data => { handleMessage(conn.peer, data); });
 
-  conn.on('close', ()=>{
+  conn.on('close', () => {
     delete connections[conn.peer];
     const name = memberMap[conn.peer]?.name || 'A member';
     delete memberMap[conn.peer];
     updatePeerCount();
     renderMembers();
     showToast(`👋 ${name} left`);
-    addFeedItem({type:'sys', text:`${name} disconnected`, ts:Date.now()});
+    addFeedItem({ type:'sys', text:`${name} disconnected`, ts:Date.now() });
   });
 
-  conn.on('error', e=>{ console.warn('Conn error', e); });
+  conn.on('error', e => { console.warn('Conn error', e); });
 }
 
 function send(conn, data){
@@ -542,31 +710,35 @@ function broadcast(data, excludePeer=null){
 function handleMessage(fromPeer, msg){
   switch(msg.type){
     case 'hello':
-      if(!memberMap[fromPeer]){
-        memberMap[fromPeer]={name:msg.name||'Unknown', gps:msg.gps, lastSeen:Date.now(), emoji:nameEmoji(msg.name||'?')};
-        showToast(`👋 ${msg.name} joined`);
-        addFeedItem({type:'sys',text:`${msg.name} joined the room`,ts:Date.now()});
-        // Connect back if we haven't
-        if(!connections[fromPeer]||!connections[fromPeer].open){
-          const c=peer.connect(fromPeer,{reliable:true});
-          setupConn(c, true);
-        }
-        // Share peer list so new user can connect to others
-        send(connections[fromPeer], {type:'peerlist', peers: Object.keys(connections)});
-      } else {
-        memberMap[fromPeer].name=msg.name;
-        memberMap[fromPeer].gps=msg.gps;
-        memberMap[fromPeer].lastSeen=Date.now();
+      // Update or add member
+      memberMap[fromPeer] = {
+        name: msg.name || 'Unknown',
+        gps:  msg.gps || null,
+        lastSeen: Date.now(),
+        emoji: nameEmoji(msg.name || '?')
+      };
+      showToast(`👋 ${msg.name} joined`);
+      addFeedItem({ type:'sys', text:`${msg.name} joined the room`, ts:Date.now() });
+
+      // Connect back to them if not already connected
+      if(!connections[fromPeer] || !connections[fromPeer].open){
+        const c = peer.connect(fromPeer, { reliable:true, serialization:'json' });
+        setupConn(c);
       }
+
+      // Share full peer list so they can mesh with everyone
+      const peerList = Object.keys(connections).filter(p => p !== fromPeer);
+      send(connections[fromPeer], { type:'peerlist', peers: peerList });
+
       renderMembers();
       break;
 
     case 'peerlist':
-      // Connect to any peers we don't know yet
-      (msg.peers||[]).forEach(pid=>{
-        if(pid!==myPeerId && !connections[pid]){
-          const c=peer.connect(pid,{reliable:true});
-          setupConn(c,true);
+      // Connect to any peers we don't know yet (mesh networking)
+      (msg.peers||[]).forEach(pid => {
+        if(pid !== myPeerId && !connections[pid]){
+          const c = peer.connect(pid, { reliable:true, serialization:'json' });
+          setupConn(c);
         }
       });
       break;
@@ -636,26 +808,57 @@ function startGPS(){
     if(selfKey) memberMap[selfKey].gps={latitude:gpsData.latitude,longitude:gpsData.longitude,altitude:gpsData.altitude,accuracy:gpsData.accuracy};
     // Broadcast location to peers every GPS update
     broadcast({type:'location', gps:{latitude:gpsData.latitude,longitude:gpsData.longitude,altitude:gpsData.altitude,accuracy:gpsData.accuracy}});
+    updateMyLocBar();
   },()=>{
     document.getElementById('gpsDot').className='gps-dot';
   },{enableHighAccuracy:true,maximumAge:3000,timeout:15000});
 }
 
 // ─── CAMERA ───
+let cameraPaused = false;
 async function startCamera(){
   if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
   try{
     camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode,width:{ideal:1280},height:{ideal:720}},audio:false});
     document.getElementById('camVideo').srcObject=camStream;
     document.getElementById('camInit').style.display='none';
+    cameraPaused=false;
+    updatePauseUI();
   }catch(e){console.warn('Cam:',e);}
 }
 async function switchCamera(){facingMode=facingMode==='environment'?'user':'environment';await startCamera();}
+
+function togglePause(){
+  if(!camStream){showToast('⚠ Camera not active');return;}
+  cameraPaused=!cameraPaused;
+  const vid=document.getElementById('camVideo');
+  if(cameraPaused){
+    vid.pause();
+    camStream.getVideoTracks().forEach(t=>t.enabled=false);
+  } else {
+    vid.play();
+    camStream.getVideoTracks().forEach(t=>t.enabled=true);
+  }
+  updatePauseUI();
+}
+
+function updatePauseUI(){
+  const btn=document.getElementById('pauseBtn');
+  const overlay=document.getElementById('pausedOverlay');
+  if(cameraPaused){
+    btn.textContent='▶'; btn.classList.add('paused');
+    overlay.classList.add('show');
+  } else {
+    btn.textContent='⏸'; btn.classList.remove('paused');
+    overlay.classList.remove('show');
+  }
+}
 
 // ─── CAPTURE & SHARE ───
 async function captureAndShare(){
   const vid=document.getElementById('camVideo');
   if(!vid.srcObject){showToast('⚠ Camera not active');return;}
+  if(cameraPaused){showToast('⚠ Resume camera first');return;}
 
   const f=document.getElementById('flashEl');
   f.classList.add('go'); setTimeout(()=>f.classList.remove('go'),150);
@@ -831,6 +1034,42 @@ function renderFeedAlert(item){
 }
 
 function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ─── MY LOCATION SHARING ───
+function getMyLocationText(){
+  if(!gpsData) return null;
+  const lat=gpsData.latitude.toFixed(6), lon=gpsData.longitude.toFixed(6);
+  const gmaps=`https://maps.google.com/?q=${lat},${lon}`;
+  const amaps=`https://maps.apple.com/?ll=${lat},${lon}`;
+  const acc=gpsData.accuracy.toFixed(0);
+  return { lat, lon, gmaps, amaps, acc,
+    text:`📍 ${myName}'s location\nLAT: ${lat}°  LON: ${lon}°\n📏 Accuracy: ±${acc}m\n🗺 Google Maps: ${gmaps}` };
+}
+
+function shareLocationToGroup(){
+  const loc=getMyLocationText();
+  if(!loc){ showToast('⚠ GPS not locked yet'); return; }
+  const ts=Date.now();
+  addFeedItem({type:'chat', from:myName, text:loc.text, ts, mine:true});
+  broadcast({type:'chat', name:myName, text:loc.text, ts});
+  showToast('📍 Location shared to group');
+  switchTab('feed');
+}
+
+function shareLocationWhatsApp(){
+  const loc=getMyLocationText();
+  if(!loc){ showToast('⚠ GPS not locked yet'); return; }
+  const wa=document.getElementById('waNum').value.replace(/\D/g,'');
+  const msg=encodeURIComponent(loc.text+`\n🗺 Apple Maps: ${loc.amaps}`);
+  if(wa) window.open(`https://wa.me/${wa}?text=${msg}`,'_blank');
+  else   window.open(`https://wa.me/?text=${msg}`,'_blank');
+}
+
+// Update My Location bar GPS availability
+function updateMyLocBar(){
+  document.getElementById('myLocBar').style.display   = gpsData ? 'flex':'none';
+  document.getElementById('myLocNoGps').style.display = gpsData ? 'none':'flex';
+}
 
 // ─── MEMBERS ───
 function renderMembers(){
