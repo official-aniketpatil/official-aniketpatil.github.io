@@ -1253,14 +1253,6 @@ function copyRoomCode(){
 
 const TURN_PROVIDERS = [
   {
-    label: 'freestun',
-    servers: [
-      { urls: 'turn:freestun.net:3478',  username: 'free', credential: 'free' },
-      { urls: 'turn:freestun.net:3479',  username: 'free', credential: 'free' },
-      { urls: 'turns:freestun.net:5349', username: 'free', credential: 'free' },
-    ]
-  },
-  {
     label: 'openrelay',
     servers: [
       { urls: 'turn:openrelay.metered.ca:80',
@@ -1272,17 +1264,37 @@ const TURN_PROVIDERS = [
     ]
   },
   {
-    label: 'numb',
+    label: 'freestun',
     servers: [
-      { urls: 'turn:numb.viagenie.ca',
-        username: 'webrtc@live.com', credential: 'muazkh' },
+      { urls: 'turn:freestun.net:3478',  username: 'free', credential: 'free' },
+      { urls: 'turn:freestun.net:5349',  username: 'free', credential: 'free' },
+      { urls: 'turns:freestun.net:5349', username: 'free', credential: 'free' },
+    ]
+  },
+  {
+    label: 'relay1',
+    servers: [
+      { urls: 'turn:relay1.expressturn.com:3478',
+        username: 'efSJ6QLYO6Y8U8LW3B', credential: 'Uc6RUQIkcdxweMf5' },
+    ]
+  },
+  {
+    label: 'stunprotocol',
+    servers: [
+      { urls: 'turn:turn.stunprotocol.org:3478',
+        username: 'guest', credential: 'somepassword' },
     ]
   },
 ];
 
 const STUN_ONLY = [
-  { urls: ['stun:stun.l.google.com:19302',  'stun:stun1.l.google.com:19302'] },
-  { urls: ['stun:stun2.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] },
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun4.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  { urls: 'stun:stun.relay.metered.ca:80' },
 ];
 
 let activeIceServers = null; // set by probeIce() before peer connects
@@ -1317,7 +1329,6 @@ function probeTurnProvider(servers){
 }
 
 async function probeIce(){
-  // Quick parallel probe of all providers
   const results = await Promise.allSettled(
     TURN_PROVIDERS.map(p => probeTurnProvider(p.servers).then(ok => ({ ok, p })))
   );
@@ -1328,43 +1339,38 @@ async function probeIce(){
 
   if(working.length > 0){
     iceHasRelay = true;
-    // Use all working providers + STUN
     const turnServers = working.flatMap(p => p.servers);
     activeIceServers = [...STUN_ONLY, ...turnServers];
-    hideRelayWarning();
     console.log('[ICE] relay working via:', working.map(p=>p.label).join(', '));
   } else {
-    // No TURN reachable — STUN only, warn user
     iceHasRelay = false;
-    activeIceServers = STUN_ONLY;
-    console.warn('[ICE] no relay candidates from any provider — STUN only');
-    showRelayWarning();
+    const allTurnServers = TURN_PROVIDERS.flatMap(p => p.servers);
+    activeIceServers = [...STUN_ONLY, ...allTurnServers];
+    console.warn('[ICE] probe failed, using all TURN servers anyway');
   }
 }
 
 function showRelayWarning(){
-  setStatus('LIMITED NETWORK', 'var(--amber)');
-  toast('Limited network: some peers may fail on this Wi-Fi', 4200);
+  toast('⚠ Limited network - trying all servers', 3500);
 }
 
-function hideRelayWarning(){
-  const banner = document.getElementById('relayWarning');
-  if(banner) banner.remove();
-}
+function hideRelayWarning(){}
 
 const PEER_CONFIG = () => ({
-  debug: 1,   // Show ICE candidate lines — helps diagnose future issues
+  debug: 1,
   config: {
     iceServers: activeIceServers || STUN_ONLY,
     iceTransportPolicy: 'all',
-    iceCandidatePoolSize: 4,
+    iceCandidatePoolSize: 8,
+    bundlePolicy: 'max-bundle',
+    rtcpMuxPolicy: 'require',
   }
 });
 
 // Per-peer connection watchdog timers (cleared on open, fired on timeout)
 const connWatchdogs = {};
-const CONN_OPEN_TIMEOUT_MS = 15000;
-const CONN_RETRY_LIMIT = 3;
+const CONN_OPEN_TIMEOUT_MS = 25000;
+const CONN_RETRY_LIMIT = 5;
 const connRetries = {}; // pid → attempt count
 
 // ════════════════════════════════
