@@ -2349,9 +2349,18 @@
         if (!peer || peer.destroyed) return;
         clearTimeout(hostRetryTimer);
         setStatus("FINDING HOST…", "var(--amber)");
-        setupConn(
-          peer.connect(hostId(), { reliable: true, serialization: "json" }),
-        );
+        const conn = peer.connect(hostId(), {
+          reliable: true,
+          serialization: "json",
+        });
+        setupConn(conn);
+        setTimeout(() => {
+          if (conn && !conn.open) {
+            toast("⚠ Host not responding - retrying...");
+            conn.close();
+            hostRetryTimer = setTimeout(connectHost, 2000);
+          }
+        }, 8000);
       }
 
       // Host re-election: when host disconnects, peer with lowest ID takes over
@@ -2426,7 +2435,15 @@
         // Deduplicate — don't wire up the same peer twice
         if (connections[conn.peer]?.open) return;
 
+        const timeout = setTimeout(() => {
+          if (!conn.open) {
+            console.warn("[conn] timeout", conn.peer);
+            conn.close();
+          }
+        }, 10000);
+
         conn.on("open", () => {
+          clearTimeout(timeout);
           connections[conn.peer] = conn;
           updatePeerCount();
           setStatus("CONNECTED", "var(--green)");
