@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -79,7 +79,8 @@
         position: fixed;
         inset: 0;
         z-index: 500;
-        background: radial-gradient(
+        background:
+          radial-gradient(
             ellipse 80% 60% at 25% 15%,
             rgba(0, 180, 255, 0.07) 0%,
             transparent 70%
@@ -128,7 +129,8 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
-        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7),
+        box-shadow:
+          0 12px 48px rgba(0, 0, 0, 0.7),
           inset 0 1px 0 rgba(255, 255, 255, 0.04);
       }
       .join-field {
@@ -430,7 +432,9 @@
         opacity: 0;
         pointer-events: none;
         transform: translateX(12px);
-        transition: opacity 0.16s, transform 0.16s;
+        transition:
+          opacity 0.16s,
+          transform 0.16s;
       }
       .page.active {
         opacity: 1;
@@ -885,7 +889,10 @@
         cursor: pointer;
         position: relative;
         flex-shrink: 0;
-        transition: border-color 0.2s, transform 0.12s, box-shadow 0.2s;
+        transition:
+          border-color 0.2s,
+          transform 0.12s,
+          box-shadow 0.2s;
         -webkit-tap-highlight-color: transparent;
       }
       .capture-btn::after {
@@ -905,7 +912,8 @@
       }
       .capture-btn.flash-ok {
         border-color: var(--green);
-        box-shadow: 0 0 0 6px rgba(0, 230, 118, 0.14),
+        box-shadow:
+          0 0 0 6px rgba(0, 230, 118, 0.14),
           0 0 28px rgba(0, 230, 118, 0.28);
       }
       .cap-icon {
@@ -1184,7 +1192,9 @@
         justify-content: center;
         font-size: 0.9rem;
         flex-shrink: 0;
-        transition: transform 0.1s, opacity 0.1s;
+        transition:
+          transform 0.1s,
+          opacity 0.1s;
         -webkit-tap-highlight-color: transparent;
       }
       .send-btn:active {
@@ -1609,7 +1619,9 @@
         z-index: 1000;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.2s, transform 0.2s;
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
         white-space: nowrap;
         box-shadow: 0 4px 22px rgba(0, 0, 0, 0.6);
       }
@@ -1664,7 +1676,9 @@
               id="roomCode"
               placeholder="ROOM"
               maxlength="8"
-              oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"
+              oninput="
+                this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+              "
             />
             <button class="gen-btn" onclick="genRoom()">GENERATE ROOM</button>
           </div>
@@ -1780,7 +1794,9 @@
             <button class="tcb" id="btnCam" onclick="toggleMyVideo()">
               📷
             </button>
-            <button class="tcb" id="btnMic" onclick="toggleMyAudio()">🎙</button>
+            <button class="tcb" id="btnMic" onclick="toggleMyAudio()">
+              🎙
+            </button>
           </div>
         </div>
         <div id="peerTiles" style="display: contents"></div>
@@ -1808,7 +1824,7 @@
     <div
       class="wa-backdrop"
       id="waBackdrop"
-      onclick="if(event.target===this)closeWa()"
+      onclick="if (event.target === this) closeWa();"
     >
       <div class="wa-sheet">
         <div class="wa-handle"></div>
@@ -1876,7 +1892,12 @@
           id="chatInput"
           placeholder="Message…"
           maxlength="300"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"
+          onkeydown="
+            if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
+              sendChat();
+            }
+          "
         />
         <button class="send-btn" onclick="sendChat()">➤</button>
       </div>
@@ -2261,7 +2282,7 @@
         const pid = isCreator ? hostId() : uniqId();
         setStatus("CONNECTING…", "var(--amber)");
         peer = new Peer(pid, {
-          debug: 0,
+          debug: 1,
           config: {
             iceServers: [
               { urls: "stun:stun.l.google.com:19302" },
@@ -2269,15 +2290,15 @@
               {
                 urls: "turn:a.relay.metered.ca:80",
                 username: "87e869b2239d8dfa5ca0fc47",
-                credential: "Sy5iCvXuD+xgLRvC"
+                credential: "Sy5iCvXuD+xgLRvC",
               },
               {
                 urls: "turn:a.relay.metered.ca:443",
                 username: "87e869b2239d8dfa5ca0fc47",
-                credential: "Sy5iCvXuD+xgLRvC"
-              }
-            ]
-          }
+                credential: "Sy5iCvXuD+xgLRvC",
+              },
+            ],
+          },
         });
 
         peer.on("open", (id) => {
@@ -2298,7 +2319,7 @@
         peer.on("call", (call) => answerCall(call));
 
         peer.on("error", (e) => {
-          console.warn("[peer]", e.type);
+          console.warn("[peer]", e.type, e);
           if (e.type === "unavailable-id" && isCreator) {
             toast("Room exists — joining…");
             isCreator = false;
@@ -2313,7 +2334,8 @@
             hostRetryTimer = setTimeout(connectHost, RECONNECT_MS);
             return;
           }
-          setStatus("ERROR", "var(--red)");
+          toast("⚠ Connection error: " + e.type);
+          setStatus("ERROR: " + e.type, "var(--red)");
         });
 
         peer.on("disconnected", () => {
@@ -2328,7 +2350,7 @@
         clearTimeout(hostRetryTimer);
         setStatus("FINDING HOST…", "var(--amber)");
         setupConn(
-          peer.connect(hostId(), { reliable: true, serialization: "json" })
+          peer.connect(hostId(), { reliable: true, serialization: "json" }),
         );
       }
 
@@ -2364,7 +2386,7 @@
         connections = {};
         isCreator = true;
         peer = new Peer(hostId(), {
-          debug: 0,
+          debug: 1,
           config: {
             iceServers: [
               { urls: "stun:stun.l.google.com:19302" },
@@ -2372,15 +2394,15 @@
               {
                 urls: "turn:a.relay.metered.ca:80",
                 username: "87e869b2239d8dfa5ca0fc47",
-                credential: "Sy5iCvXuD+xgLRvC"
+                credential: "Sy5iCvXuD+xgLRvC",
               },
               {
                 urls: "turn:a.relay.metered.ca:443",
                 username: "87e869b2239d8dfa5ca0fc47",
-                credential: "Sy5iCvXuD+xgLRvC"
-              }
-            ]
-          }
+                credential: "Sy5iCvXuD+xgLRvC",
+              },
+            ],
+          },
         });
         peer.on("open", (id) => {
           myPeerId = id;
@@ -2388,8 +2410,8 @@
           dot("ok");
           known.forEach((p) =>
             setupConn(
-              peer.connect(p, { reliable: true, serialization: "json" })
-            )
+              peer.connect(p, { reliable: true, serialization: "json" }),
+            ),
           );
         });
         peer.on("connection", (conn) => setupConn(conn));
@@ -2466,7 +2488,7 @@
         updateBadges();
         setStatus(
           n > 0 ? `${n} PEER${n > 1 ? "S" : ""} CONNECTED` : "ALONE",
-          n > 0 ? "var(--green)" : "var(--muted)"
+          n > 0 ? "var(--green)" : "var(--muted)",
         );
       }
 
@@ -2491,7 +2513,7 @@
             // mesh back
             if (!connections[from]?.open)
               setupConn(
-                peer.connect(from, { reliable: true, serialization: "json" })
+                peer.connect(from, { reliable: true, serialization: "json" }),
               );
             // share peer list
             send(connections[from], {
@@ -2505,7 +2527,7 @@
             (msg.peers || []).forEach((pid) => {
               if (pid !== myPeerId && !connections[pid])
                 setupConn(
-                  peer.connect(pid, { reliable: true, serialization: "json" })
+                  peer.connect(pid, { reliable: true, serialization: "json" }),
                 );
             });
             break;
@@ -2604,7 +2626,7 @@
             $("gpsDot").className = "gps-dot";
             $("gpsCoords").textContent = "GPS unavailable";
           },
-          { enableHighAccuracy: true, maximumAge: 4000, timeout: 20000 }
+          { enableHighAccuracy: true, maximumAge: 4000, timeout: 20000 },
         );
       }
 
@@ -2618,7 +2640,7 @@
         $("gpsCoords").textContent = "Location off";
         $("gpsAcc").textContent = "";
         ["vfLat", "vfLon", "vfAlt"].forEach(
-          (id) => ($(id).textContent = "---")
+          (id) => ($(id).textContent = "---"),
         );
         broadcast({ type: "location", gps: null });
         updateLocBar();
@@ -2685,7 +2707,7 @@
       function toggleMyVideo() {
         myVideoOn = !myVideoOn;
         [myMediaStream, camStream].forEach((s) =>
-          s?.getVideoTracks().forEach((t) => (t.enabled = myVideoOn))
+          s?.getVideoTracks().forEach((t) => (t.enabled = myVideoOn)),
         );
         const btn = $("btnCam");
         btn.textContent = myVideoOn ? "📷" : "🚫";
@@ -2841,7 +2863,7 @@
       function updateStrip() {
         $("strip").classList.toggle(
           "has-peers",
-          Object.keys(connections).length > 0
+          Object.keys(connections).length > 0,
         );
       }
 
@@ -2924,7 +2946,7 @@
           ctx.fillRect(0, h - bh, w * 0.56, bh);
           ctx.fillStyle = "#00b4ff";
           lines.forEach((l, i) =>
-            ctx.fillText(l, 7, h - bh + (i + 1) * (fs + 4) - 1)
+            ctx.fillText(l, 7, h - bh + (i + 1) * (fs + 4) - 1),
           );
         }
 
@@ -2946,7 +2968,7 @@
         btn.classList.add("flash-ok");
         setTimeout(() => btn.classList.remove("flash-ok"), 650);
         $("captureCount").textContent = feedItems.filter(
-          (f) => f.type === "record"
+          (f) => f.type === "record",
         ).length;
         if (currentTab !== "feed") {
           feedUnread++;
@@ -2979,7 +3001,7 @@
         const am = `https://maps.apple.com/?ll=${lat},${lon}`;
         return {
           text: `📍 ${myName}\nLAT: ${lat}°  LON: ${lon}°\n±${gpsData.accuracy.toFixed(
-            0
+            0,
           )}m\n🗺 ${gm}`,
           am,
         };
@@ -3018,41 +3040,45 @@
       // WA DIALOG
       // ════════════════════════════════
       async function loadContacts() {
-        if (!('contacts' in navigator && 'ContactsManager' in window)) {
+        if (!("contacts" in navigator && "ContactsManager" in window)) {
           loadRecentNumbers();
           return;
         }
         try {
-          const props = ['name', 'tel'];
-          const contacts = await navigator.contacts.select(props, { multiple: true });
-          const datalist = document.getElementById('contactSuggestions');
+          const props = ["name", "tel"];
+          const contacts = await navigator.contacts.select(props, {
+            multiple: true,
+          });
+          const datalist = document.getElementById("contactSuggestions");
           datalist.innerHTML = contacts
-            .flatMap(c => c.tel.map(t => ({
-              name: c.name?.[0] || '',
-              tel: t.replace(/\D/g, '')
-            })))
-            .filter(c => c.tel)
-            .map(c => `<option value="${c.tel}">${c.name}</option>`)
-            .join('');
+            .flatMap((c) =>
+              c.tel.map((t) => ({
+                name: c.name?.[0] || "",
+                tel: t.replace(/\D/g, ""),
+              })),
+            )
+            .filter((c) => c.tel)
+            .map((c) => `<option value="${c.tel}">${c.name}</option>`)
+            .join("");
         } catch (_) {
           loadRecentNumbers();
         }
       }
 
       function loadRecentNumbers() {
-        const recent = JSON.parse(localStorage.getItem('gl-wa-recent') || '[]');
-        const datalist = document.getElementById('contactSuggestions');
+        const recent = JSON.parse(localStorage.getItem("gl-wa-recent") || "[]");
+        const datalist = document.getElementById("contactSuggestions");
         datalist.innerHTML = recent
           .slice(0, 5)
-          .map(num => `<option value="${num}"></option>`)
-          .join('');
+          .map((num) => `<option value="${num}"></option>`)
+          .join("");
       }
 
       function saveRecentNumber(num) {
         if (!num) return;
-        let recent = JSON.parse(localStorage.getItem('gl-wa-recent') || '[]');
-        recent = [num, ...recent.filter(n => n !== num)].slice(0, 5);
-        localStorage.setItem('gl-wa-recent', JSON.stringify(recent));
+        let recent = JSON.parse(localStorage.getItem("gl-wa-recent") || "[]");
+        recent = [num, ...recent.filter((n) => n !== num)].slice(0, 5);
+        localStorage.setItem("gl-wa-recent", JSON.stringify(recent));
       }
 
       function openWa(title, sub) {
@@ -3071,7 +3097,7 @@
         if (num) saveRecentNumber(num);
         window.open(
           (num ? `https://wa.me/${num}` : "https://wa.me") + "?text=" + msg,
-          "_blank"
+          "_blank",
         );
         closeWa();
         saveWaNum();
@@ -3106,12 +3132,12 @@
       }">${m.emoji}</div>
       <div class="member-info">
         <div class="member-name${self ? " you" : ""}">${esc(m.name)}${
-              self ? " (you)" : ""
-            }</div>
+          self ? " (you)" : ""
+        }</div>
         <div class="member-coords">${
           g
             ? `LAT <b>${g.latitude.toFixed(
-                4
+                4,
               )}°</b> &nbsp; LON <b>${g.longitude.toFixed(4)}°</b>`
             : "No location shared"
         }</div>
@@ -3125,14 +3151,14 @@
       </div>
       <div class="member-actions">
         <span class="pill ${self || fresh ? "pill-green" : "pill-amber"}">${
-              self ? "YOU" : fresh ? "LIVE" : "IDLE"
-            }</span>
+          self ? "YOU" : fresh ? "LIVE" : "IDLE"
+        }</span>
         ${
           g && !self
             ? `<button class="map-btn" onclick="window.open('https://maps.apple.com/?ll=${
                 g.latitude
               },${g.longitude}&q=${encodeURIComponent(
-                m.name
+                m.name,
               )}','_blank')">📍 MAP</button>`
             : ""
         }
@@ -3165,7 +3191,7 @@
             if (item.type === "chat") return renderChat(item);
             if (item.type === "sys")
               return `<div class="feed-item"><div class="feed-sys">${esc(
-                item.text
+                item.text,
               )}</div></div>`;
             return "";
           })
@@ -3194,20 +3220,20 @@
       g
         ? `<div class="feed-details">
       <div><div class="fd-lbl">LAT</div><div class="fd-val">${g.latitude.toFixed(
-        5
+        5,
       )}°</div></div>
       <div><div class="fd-lbl">LON</div><div class="fd-val">${g.longitude.toFixed(
-        5
+        5,
       )}°</div></div>
       ${
         g.altitude != null
           ? `<div><div class="fd-lbl">ALT</div><div class="fd-val">${g.altitude.toFixed(
-              1
+              1,
             )}m</div></div>`
           : ""
       }
       <div><div class="fd-lbl">ACC</div><div class="fd-val">±${g.accuracy.toFixed(
-        0
+        0,
       )}m</div></div>
     </div>`
         : ""
@@ -3261,8 +3287,8 @@
           .map(
             ([l, v]) =>
               `<div class="modal-row"><div class="modal-lbl">${l.toUpperCase()}</div><div class="modal-val">${esc(
-                v
-              )}</div></div>`
+                v,
+              )}</div></div>`,
           )
           .join("");
         $("photoModal").classList.add("open");
@@ -3272,7 +3298,7 @@
         if (g)
           window.open(
             `https://maps.apple.com/?ll=${g.latitude},${g.longitude}`,
-            "_blank"
+            "_blank",
           );
       }
       function closeModal() {
@@ -3304,7 +3330,7 @@
         mb.style.display = pc > 0 ? "flex" : "none";
         if (pc > 0) mb.textContent = pc;
         $("captureCount").textContent = feedItems.filter(
-          (f) => f.type === "record"
+          (f) => f.type === "record",
         ).length;
       }
 
