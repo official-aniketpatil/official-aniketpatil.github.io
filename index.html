@@ -1821,8 +1821,10 @@
           id="waNum"
           type="tel"
           placeholder="919876543210"
+          list="contactSuggestions"
           oninput="saveWaNum()"
         />
+        <datalist id="contactSuggestions"></datalist>
         <div class="wa-hint">💡 Number saved for next time</div>
         <div class="wa-actions">
           <button class="wa-send" onclick="confirmWa()">✓ OPEN WHATSAPP</button>
@@ -3014,10 +3016,28 @@
       // ════════════════════════════════
       // WA DIALOG
       // ════════════════════════════════
+      async function loadContacts() {
+        if (!('contacts' in navigator && 'ContactsManager' in window)) return;
+        try {
+          const props = ['name', 'tel'];
+          const contacts = await navigator.contacts.select(props, { multiple: true });
+          const datalist = document.getElementById('contactSuggestions');
+          datalist.innerHTML = contacts
+            .flatMap(c => c.tel.map(t => ({
+              name: c.name?.[0] || '',
+              tel: t.replace(/\D/g, '')
+            })))
+            .filter(c => c.tel)
+            .map(c => `<option value="${c.tel}">${c.name}</option>`)
+            .join('');
+        } catch (_) {}
+      }
+
       function openWa(title, sub) {
         if (title) $("waTitle").textContent = title;
         if (sub) $("waSub").textContent = sub;
         $("waBackdrop").classList.add("open");
+        loadContacts();
         setTimeout(() => $("waNum").focus(), 300);
       }
       function closeWa() {
