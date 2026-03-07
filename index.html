@@ -2000,7 +2000,8 @@
       let currentTab = "capture";
       let hostRetryTimer = null,
         membersRenderTimer = null,
-        hostRetryCount = 0;
+        hostRetryCount = 0,
+        hostReclaimAttempts = 0;
 
       const AVATARS = [
         "🧑",
@@ -2313,6 +2314,7 @@
           if (isCreator) {
             setStatus("HOSTING", "var(--green)");
             dot("ok");
+            hostReclaimAttempts = 0;
           } else connectHost();
         });
 
@@ -2322,12 +2324,19 @@
         peer.on("error", (e) => {
           console.warn("[peer]", e.type, e);
           if (e.type === "unavailable-id" && isCreator) {
-            toast("Reclaiming host ID...");
+            hostReclaimAttempts++;
+            if (hostReclaimAttempts > 10) {
+              toast("⚠ Cannot reclaim host ID - try different room code");
+              setStatus("HOST ID TAKEN", "var(--red)");
+              return;
+            }
+            const delay = Math.min(5000 * hostReclaimAttempts, 30000);
+            toast(`Reclaiming host ID... (${hostReclaimAttempts}/10)`);
             setTimeout(() => {
-              peer.destroy();
+              if (peer) peer.destroy();
               peer = null;
               initPeer();
-            }, 3000);
+            }, delay);
             return;
           }
           if (e.type === "peer-unavailable") {
