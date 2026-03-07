@@ -2284,18 +2284,13 @@
         const pid = isCreator ? hostId() : uniqId();
         setStatus("CONNECTING…", "var(--amber)");
         peer = new Peer(pid, {
-          debug: 1,
+          debug: 0,
+          pingInterval: 5000,
           config: {
             iceServers: [
               { urls: "stun:stun.l.google.com:19302" },
-              { urls: "stun:stun1.l.google.com:19302" },
               {
                 urls: "turn:a.relay.metered.ca:80",
-                username: "87e869b2239d8dfa5ca0fc47",
-                credential: "Sy5iCvXuD+xgLRvC",
-              },
-              {
-                urls: "turn:a.relay.metered.ca:443",
                 username: "87e869b2239d8dfa5ca0fc47",
                 credential: "Sy5iCvXuD+xgLRvC",
               },
@@ -2360,20 +2355,24 @@
         if (!peer || peer.destroyed) return;
         clearTimeout(hostRetryTimer);
         setStatus("FINDING HOST…", "var(--amber)");
+        
         const conn = peer.connect(hostId(), {
           reliable: true,
           serialization: "json",
         });
+        
         setupConn(conn);
+        
         setTimeout(() => {
           if (conn && !conn.open) {
             conn.close();
             hostRetryCount++;
-            if (hostRetryCount > 3) {
-              toast("🎯 No host found - becoming host...");
+            
+            if (hostRetryCount > 4) {
+              toast("🎯 Becoming host...");
               hostRetryCount = 0;
               isCreator = true;
-              peer.destroy();
+              if (peer) peer.destroy();
               peer = null;
               setTimeout(initPeer, 500);
             } else {
@@ -2382,7 +2381,7 @@
           } else if (conn.open) {
             hostRetryCount = 0;
           }
-        }, 8000);
+        }, 5000);
       }
 
       function onPeerLeft(pid) {
