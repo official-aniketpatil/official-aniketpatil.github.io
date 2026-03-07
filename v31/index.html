@@ -1377,7 +1377,7 @@ const connRetries = {}; // pid → attempt count
 // ════════════════════════════════
 // PEER — FULL MESH + HOST RE-ELECTION
 // ════════════════════════════════
-const hostId=()=>'GL-'+myRoom;
+const hostId=()=>'GL-'+myRoom+'-'+Math.random().toString(36).slice(2,4);
 const uniqId=()=>'GL-'+myRoom+'-'+myName.replace(/\W/g,'').slice(0,8)+'-'+Date.now().toString(36).slice(-4)+'-'+Math.random().toString(36).slice(2,5);
 
 function makePeer(id, onOpen){
@@ -1422,15 +1422,11 @@ function initPeer(){
     }
     if(e.type === 'network' || e.type === 'server-error' || e.type === 'webrtc'){
       setStatus('CONNECTION ERROR','var(--red)');
-      // Exponential backoff for network errors
       const retryDelay = Math.min(1000 * Math.pow(2, (connRetries[myPeerId] || 0)), 10000);
       connRetries[myPeerId] = (connRetries[myPeerId] || 0) + 1;
       setTimeout(() => {
         if(peer && peer.destroyed) initPeer();
       }, retryDelay);
-      return;
-    }
-      setStatus('RECONNECTING…','var(--amber)'); dot('partial');
       return;
     }
     setStatus('ERROR — retrying…','var(--red)');
