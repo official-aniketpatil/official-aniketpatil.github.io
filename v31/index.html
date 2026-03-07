@@ -711,6 +711,7 @@
     <div class="cap-side">
       <button class="icon-btn" id="pauseBtn" onclick="togglePause()">⏸</button>
       <button class="icon-btn" id="screenBtn" onclick="toggleScreen()" title="Share screen">🖥</button>
+      <button class="icon-btn" id="qualityBtn" onclick="toggleQuality()" title="Toggle quality">⚡</button>
       <button class="icon-btn" onclick="switchCamera()">⟳</button>
     </div>
     <button class="capture-btn" id="captureBtn" onclick="captureAndShare()" title="Capture photo">
@@ -839,6 +840,8 @@ let statsSnapshots={};
 let connectionStrength={label:'CHECKING',color:'var(--amber)'};
 let peerScreenState={};
 let sessionStart=null, durationTimer=null;
+let qualityMode='optimized'; // 'hd' or 'optimized'
+let audioEnhancer=null, audioContext=null;
 
 const AVATARS=['🧑','👨','👩','🧔','👱','🧒','👴','👵','🧑‍💻','🧑‍🔧'];
 const RECONNECT_MS=5000;
@@ -1158,6 +1161,7 @@ function leaveRoom(){
   if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
   if(screenStream){ screenStream.getTracks().forEach(t=>t.stop()); screenStream=null; }
   if(myMediaStream){ myMediaStream.getTracks().forEach(t=>t.stop()); myMediaStream=null; }
+  if(audioContext){ try{audioContext.close();}catch(_){} audioContext=null; }
   bindSourceVideo(null);
 
   // Close all media calls
@@ -1671,9 +1675,10 @@ function updateLocBar(){
 // ════════════════════════════════
 async function startCamera(){
   if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+  const res=qualityMode==='hd'?{width:{ideal:1920},height:{ideal:1080}}:{width:{ideal:1280},height:{ideal:720}};
   try{
     camStream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode,width:{ideal:1920},height:{ideal:1080}},audio:false
+      video:{facingMode,...res},audio:false
     });
     bindSourceVideo(camStream);
     updatePreviewMode();
@@ -1689,22 +1694,61 @@ async function buildMediaStream(){
   if(!videoTracks.length) return;
   const prev=$('selfPreview');
   try{
-    const aud=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,sampleRate:48000},video:false});
-    myMediaStream=new MediaStream([...videoTracks,...aud.getAudioTracks()]);
+    const aud=await navigator.mediaDevices.getUserMedia({
+      audio:{
+        echoCancellation:true,
+        noiseSuppression:true,
+        autoGainControl:true,
+        sampleRate:48000,
+        channelCount:1,
+        latency:0,
+        volume:1.0
+      },
+      video:false
+    });
+    const enhancedAudio=await enhanceAudio(aud);
+    myMediaStream=new MediaStream([...videoTracks,...enhancedAudio.getAudioTracks()]);
   }catch(_){
     myMediaStream=new MediaStream([...videoTracks]);
   }
   prev.srcObject=new MediaStream(videoTracks);
   startConnectionMonitor();
-  // Stream is ready — drain any peers that were waiting
   drainMediaQueue();
   await syncOutgoingMedia();
+}
+
+async function enhanceAudio(stream){
+  try{
+    if(!audioContext) audioContext=new(window.AudioContext||window.webkitAudioContext)({sampleRate:48000});
+    const source=audioContext.createMediaStreamSource(stream);
+    const compressor=audioContext.createDynamicsCompressor();
+    compressor.threshold.value=-24;
+    compressor.knee.value=30;
+    compressor.ratio.value=12;
+    compressor.attack.value=0.003;
+    compressor.release.value=0.25;
+    const gainNode=audioContext.createGain();
+    gainNode.gain.value=1.2;
+    const filter=audioContext.createBiquadFilter();
+    filter.type='highpass';
+    filter.frequency.value=80;
+    filter.Q.value=0.7;
+    source.connect(filter);
+    filter.connect(compressor);
+    compressor.connect(gainNode);
+    const dest=audioContext.createMediaStreamDestination();
+    gainNode.connect(dest);
+    return dest.stream;
+  }catch(_){
+    return stream;
+  }
 }
 
 async function toggleScreen(){
   if(!isScreenSharing){
     try{
-      screenStream=await navigator.mediaDevices.getDisplayMedia({video:{width:{ideal:1920},height:{ideal:1080}},audio:true});
+      const res=qualityMode==='hd'?{width:{ideal:1920},height:{ideal:1080}}:{width:{ideal:1280},height:{ideal:720}};
+      screenStream=await navigator.mediaDevices.getDisplayMedia({video:{...res},audio:true});
       isScreenSharing=true;
       bindSourceVideo(screenStream);
       updatePreviewMode();
@@ -1777,6 +1821,15 @@ function updatePauseUI(){
   const btn=$('pauseBtn');
   btn.textContent=cameraPaused?'▶':'⏸'; btn.classList.toggle('paused',cameraPaused);
   $('pausedOverlay').classList.toggle('show',cameraPaused);
+}
+
+async function toggleQuality(){
+  qualityMode=qualityMode==='hd'?'optimized':'hd';
+  const btn=$('qualityBtn');
+  btn.textContent=qualityMode==='hd'?'🔥':'⚡';
+  btn.style.borderColor=qualityMode==='hd'?'var(--amber)':'';
+  toast(qualityMode==='hd'?'🔥 HD mode (1080p)':'⚡ Optimized (720p)');
+  await startCamera();
 }
 
 // ── WebRTC calls ──
@@ -1975,12 +2028,13 @@ function attachPeerStream(pid, stream){
     const ptc = $('ptc-'+pid); if(ptc) ptc.style.display = 'none';
   }
 
-  // ── Audio tracks → separate <audio> (iOS Safari fix) ──
+  // ── Audio tracks → separate <audio> (iOS Safari fix) + enhancement ──
   const audioTracks = stream.getAudioTracks();
   if(audioTracks.length){
     if(peerAudios[pid]){ peerAudios[pid].srcObject = null; peerAudios[pid].remove(); }
     const a = document.createElement('audio');
     a.autoplay = true; a.style.display = 'none';
+    a.volume = 1.0;
     a.srcObject = new MediaStream(audioTracks);
     document.body.appendChild(a);
     peerAudios[pid] = a;
@@ -2056,7 +2110,8 @@ async function captureAndShare(){
     lines.forEach((l,i)=>ctx.fillText(l,7,h-bh+(i+1)*(fs+4)-1));
   }
 
-  const photo=c.toDataURL('image/jpeg',.55);
+  const quality=qualityMode==='hd'?.75:.40;
+  const photo=c.toDataURL('image/jpeg',quality);
   const gps=gpsData?gpsObj(gpsData):null;
   const ts=Date.now();
 
