@@ -1765,13 +1765,12 @@ async function toggleScreen(){
   } else {
     if(screenStream){ screenStream.getTracks().forEach(t=>t.stop()); screenStream=null; }
     isScreenSharing=false;
-    bindSourceVideo(camStream);
-    updatePreviewMode();
     const btn=$('screenBtn');
     btn.textContent='🖥';
     btn.style.borderColor='';
     await startCamera();
     broadcast({type:'screen-state',active:false,name:myName});
+    renderScreenStage();
     toast('📷 Camera resumed');
   }
 }
