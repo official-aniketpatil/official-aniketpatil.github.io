@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TURN Server Validator</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #0a0e1a;
+      color: #00ff88;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 { color: #00b4ff; }
+    .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+    .success { background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; }
+    .error { background: rgba(255, 68, 85, 0.1); border: 1px solid #ff4455; color: #ff4455; }
+    .warning { background: rgba(255, 171, 0, 0.1); border: 1px solid #ffab00; color: #ffab00; }
+    .info { background: rgba(0, 180, 255, 0.1); border: 1px solid #00b4ff; color: #00b4ff; }
+    button {
+      background: #00b4ff;
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      font-family: monospace;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    button:hover { background: #00d4ff; }
+    pre { background: rgba(255,255,255,0.05); padding: 10px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>🔍 TURN Server Validator</h1>
+  <p>Testing TURN server connectivity and credentials...</p>
+  
+  <button onclick="testTurnServers()">▶ RUN TEST</button>
+  
+  <div id="results"></div>
+
+  <script>
+    const iceServers = [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      {
+        urls: [
+          "turn:openrelay.metered.ca:80",
+          "turn:openrelay.metered.ca:443",
+          "turn:openrelay.metered.ca:443?transport=tcp"
+        ],
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+    ];
+
+    function log(msg, type = 'info') {
+      const div = document.createElement('div');
+      div.className = `status ${type}`;
+      div.innerHTML = msg;
+      document.getElementById('results').appendChild(div);
+    }
+
+    async function testTurnServers() {
+      document.getElementById('results').innerHTML = '';
+      log('🚀 Starting TURN server validation...', 'info');
+      
+      const pc = new RTCPeerConnection({ iceServers });
+      const candidates = [];
+      
+      pc.onicecandidate = (e) => {
+        if (e.candidate) {
+          candidates.push(e.candidate);
+          const type = e.candidate.type;
+          const protocol = e.candidate.protocol;
+          const address = e.candidate.address || e.candidate.ip;
+          
+          log(`✓ ICE Candidate: <b>${type}</b> via ${protocol} (${address})`, 
+              type === 'relay' ? 'success' : 'warning');
+        } else {
+          log('✓ ICE gathering complete', 'info');
+          analyzeCandidates(candidates);
+        }
+      };
+
+      pc.onicegatheringstatechange = () => {
+        log(`ICE Gathering State: <b>${pc.iceGatheringState}</b>`, 'info');
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        log(`ICE Connection State: <b>${pc.iceConnectionState}</b>`, 'info');
+      };
+
+      // Create dummy data channel to trigger ICE gathering
+      pc.createDataChannel('test');
+      
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        log('✓ Created offer and started ICE gathering', 'success');
+      } catch (err) {
+        log(`✗ Error: ${err.message}`, 'error');
+      }
+
+      // Wait for gathering to complete
+      setTimeout(() => {
+        if (pc.iceGatheringState !== 'complete') {
+          log('⚠ ICE gathering timeout - may indicate network issues', 'warning');
+        }
+        pc.close();
+      }, 10000);
+    }
+
+    function analyzeCandidates(candidates) {
+      const types = {
+        host: candidates.filter(c => c.type === 'host').length,
+        srflx: candidates.filter(c => c.type === 'srflx').length,
+        relay: candidates.filter(c => c.type === 'relay').length,
+      };
+
+      log('<br><b>📊 SUMMARY:</b>', 'info');
+      log(`Host candidates: ${types.host}`, types.host > 0 ? 'success' : 'error');
+      log(`Server reflexive (STUN): ${types.srflx}`, types.srflx > 0 ? 'success' : 'warning');
+      log(`Relay (TURN): ${types.relay}`, types.relay > 0 ? 'success' : 'error');
+
+      if (types.relay === 0) {
+        log('<br><b>❌ TURN SERVER FAILED</b><br>No relay candidates found. Possible causes:<br>' +
+            '• Invalid credentials<br>' +
+            '• TURN server unreachable<br>' +
+            '• Firewall blocking TURN ports<br>' +
+            '• Credentials expired', 'error');
+      } else {
+        log(`<br><b>✅ TURN SERVER WORKING</b><br>Found ${types.relay} relay candidate(s)`, 'success');
+      }
+
+      log('<br><b>All Candidates:</b><pre>' + 
+          JSON.stringify(candidates.map(c => ({
+            type: c.type,
+            protocol: c.protocol,
+            address: c.address || c.ip,
+            port: c.port
+          })), null, 2) + '</pre>', 'info');
+    }
+  </script>
+</body>
+</html>

@@ -2284,17 +2284,21 @@
         const pid = isCreator ? hostId() : uniqId();
         setStatus("CONNECTING…", "var(--amber)");
         peer = new Peer(pid, {
-          debug: 0,
+          debug: 1,
+          host: '0.peerjs.com',
+          port: 443,
+          path: '/',
+          secure: true,
           pingInterval: 5000,
           config: {
             iceServers: [
               { urls: "stun:stun.l.google.com:19302" },
-              {
-                urls: "turn:a.relay.metered.ca:80",
-                username: "87e869b2239d8dfa5ca0fc47",
-                credential: "Sy5iCvXuD+xgLRvC",
-              },
+              { urls: "stun:stun1.l.google.com:19302" },
+              { urls: "stun:stun2.l.google.com:19302" },
+              { urls: "stun:stun3.l.google.com:19302" },
+              { urls: "stun:stun4.l.google.com:19302" },
             ],
+            iceTransportPolicy: 'all',
           },
         });
 
@@ -2389,6 +2393,18 @@
       function setupConn(conn) {
         // Deduplicate — don't wire up the same peer twice
         if (connections[conn.peer]?.open) return;
+
+        // Log ICE candidates for debugging
+        if (conn.peerConnection) {
+          conn.peerConnection.onicecandidate = (e) => {
+            if (e.candidate) {
+              console.log(`[ICE] ${conn.peer} candidate:`, e.candidate.type, e.candidate.protocol);
+            }
+          };
+          conn.peerConnection.oniceconnectionstatechange = () => {
+            console.log(`[ICE] ${conn.peer} state:`, conn.peerConnection.iceConnectionState);
+          };
+        }
 
         const timeout = setTimeout(() => {
           if (!conn.open) {
@@ -2754,6 +2770,17 @@
       }
 
       function wireCall(call, pid) {
+        // Log ICE for media calls
+        if (call.peerConnection) {
+          call.peerConnection.onicecandidate = (e) => {
+            if (e.candidate) {
+              console.log(`[MEDIA-ICE] ${pid}:`, e.candidate.type, e.candidate.protocol);
+            }
+          };
+          call.peerConnection.oniceconnectionstatechange = () => {
+            console.log(`[MEDIA-ICE] ${pid} state:`, call.peerConnection.iceConnectionState);
+          };
+        }
         call.on("stream", (s) => addPeerTile(pid, s));
         call.on("close", () => cleanupPeer(pid));
         call.on("error", () => cleanupPeer(pid));
