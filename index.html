@@ -101,6 +101,129 @@
     .cap-icon{font-size:1.3rem;z-index:1;}
     .switch-btn{width:38px;height:38px;background:var(--bg2);border:1px solid var(--border);border-radius:50%;color:var(--muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
 
+    /* ── PARTICIPANTS STRIP ── */
+    .participants-strip{
+      flex-shrink:0;
+      background:var(--bg2);
+      border-top:1px solid var(--border);
+      overflow-x:auto;overflow-y:hidden;
+      display:flex;gap:0;
+      height:0;transition:height 0.3s ease;
+      scrollbar-width:none;
+    }
+    .participants-strip::-webkit-scrollbar{display:none;}
+    .participants-strip.has-peers{height:130px;}
+
+    /* My own mini tile (self preview) */
+    .self-tile{
+      position:relative;flex-shrink:0;
+      width:90px;height:130px;
+      background:var(--panel);
+      border-right:1px solid var(--border);
+      overflow:hidden;
+      display:flex;flex-direction:column;
+    }
+    .self-tile video{width:100%;height:100%;object-fit:cover;display:block;}
+    .self-tile-controls{
+      position:absolute;bottom:0;left:0;right:0;
+      background:rgba(5,8,16,0.75);
+      display:flex;align-items:center;gap:0;
+      border-top:1px solid var(--border);
+    }
+    .self-tile-name{
+      position:absolute;top:4px;left:0;right:0;
+      text-align:center;font-size:0.46rem;letter-spacing:0.08em;
+      color:rgba(255,255,255,0.7);
+      text-shadow:0 1px 3px rgba(0,0,0,0.8);
+    }
+    .self-badge{
+      position:absolute;top:4px;right:4px;
+      font-size:0.4rem;padding:1px 4px;border-radius:2px;
+      background:rgba(0,230,118,0.2);color:var(--green);
+      border:1px solid rgba(0,230,118,0.3);letter-spacing:0.08em;
+    }
+
+    /* Peer tile */
+    .peer-tile{
+      position:relative;flex-shrink:0;
+      width:90px;height:130px;
+      background:var(--panel);
+      border-right:1px solid var(--border);
+      overflow:hidden;
+    }
+    .peer-tile video{
+      width:100%;height:100%;object-fit:cover;display:block;
+      background:#000;
+    }
+    .peer-tile-controls{
+      position:absolute;bottom:0;left:0;right:0;
+      background:rgba(5,8,16,0.8);
+      display:flex;
+      border-top:1px solid var(--border);
+    }
+    .tile-name{
+      position:absolute;top:0;left:0;right:0;
+      padding:4px 4px 2px;
+      font-size:0.45rem;letter-spacing:0.06em;
+      color:rgba(255,255,255,0.8);
+      background:linear-gradient(to bottom,rgba(5,8,16,0.7),transparent);
+      text-align:center;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    /* video off state */
+    .peer-tile .vid-off{
+      position:absolute;inset:0;
+      background:var(--panel);
+      display:none;flex-direction:column;
+      align-items:center;justify-content:center;gap:4px;
+    }
+    .peer-tile.video-off .vid-off{display:flex;}
+    .peer-tile.video-off video{display:none;}
+    .vid-off-icon{font-size:1.4rem;opacity:0.4;}
+    .vid-off-name{font-size:0.5rem;color:var(--muted);letter-spacing:0.08em;}
+
+    /* tile control button */
+    .tile-ctrl{
+      flex:1;padding:5px 4px;
+      background:transparent;border:none;
+      color:var(--muted);font-size:0.75rem;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      border-right:1px solid var(--border);
+      -webkit-tap-highlight-color:transparent;
+      transition:color 0.2s, background 0.2s;
+    }
+    .tile-ctrl:last-child{border-right:none;}
+    .tile-ctrl:active{background:rgba(255,255,255,0.05);}
+    .tile-ctrl.muted{color:var(--red);}
+    .tile-ctrl.vid-paused{color:var(--amber);}
+
+    /* Connecting overlay on peer tile */
+    .tile-connecting{
+      position:absolute;inset:0;
+      background:var(--panel);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:4px;
+    }
+    .tile-conn-dot{
+      width:8px;height:8px;border-radius:50%;
+      background:var(--amber);box-shadow:0 0 6px var(--amber);
+      animation:blink 0.8s infinite;
+    }
+    .tile-conn-label{font-size:0.45rem;color:var(--muted);letter-spacing:0.1em;}
+
+    /* My self tile mic/cam toggle buttons in capture bar */
+    .my-av-controls{display:flex;flex-direction:column;gap:5px;}
+    .av-btn{
+      width:38px;height:28px;
+      background:var(--bg2);border:1px solid var(--border);border-radius:3px;
+      color:var(--muted);font-size:0.7rem;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px;
+      font-family:'IBM Plex Mono',monospace;font-size:0.5rem;letter-spacing:0.06em;
+      -webkit-tap-highlight-color:transparent;transition:all 0.2s;
+    }
+    .av-btn.active-green{border-color:rgba(0,230,118,0.4);color:var(--green);}
+    .av-btn.muted-red{border-color:rgba(255,61,61,0.4);color:var(--red);}
+
     /* ── MEMBERS PAGE ── */
     #page-members{padding:0;}
     .members-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:rgba(5,8,16,0.96);z-index:10;backdrop-filter:blur(8px);}
@@ -300,6 +423,32 @@
     /* No items placeholder */
     .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;height:200px;color:var(--muted);font-size:0.62rem;letter-spacing:0.12em;text-align:center;}
     .empty-icon{font-size:2.5rem;opacity:0.2;}
+
+    /* ── AUDIO UNLOCK BANNER ── */
+    /* iOS Safari blocks audio until a real user gesture — this banner prompts the tap */
+    .audio-unlock-banner{
+      position:absolute;
+      top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      z-index:20;
+      background:rgba(5,8,16,0.92);
+      border:1px solid var(--amber);
+      border-radius:8px;
+      padding:12px 20px;
+      display:flex; flex-direction:column; align-items:center; gap:8px;
+      backdrop-filter:blur(8px);
+      box-shadow:0 0 24px rgba(255,171,0,0.2);
+      pointer-events:all;
+      cursor:pointer;
+      transition:opacity 0.3s;
+    }
+    .audio-unlock-banner.hidden{ opacity:0; pointer-events:none; }
+    .aub-icon{ font-size:1.6rem; }
+    .aub-label{
+      font-size:0.62rem; letter-spacing:0.15em;
+      color:var(--amber); text-transform:uppercase; text-align:center;
+    }
+    .aub-sub{ font-size:0.52rem; color:var(--muted); text-align:center; }
   </style>
 </head>
 <body>
@@ -369,7 +518,6 @@
       </div>
     </div>
     <div class="flash" id="flashEl"></div>
-    <!-- PAUSED OVERLAY -->
     <div class="paused-overlay" id="pausedOverlay">
       <div class="paused-icon">⏸</div>
       <div class="paused-label">Camera Paused</div>
@@ -381,8 +529,31 @@
       <button class="cam-init-btn" onclick="startCamera()">ENABLE CAMERA</button>
     </div>
   </div>
+
+  <!-- ── PARTICIPANTS STRIP ── -->
+  <div class="participants-strip" id="participantsStrip">
+    <!-- Audio unlock banner — shown until user taps (iOS Safari requirement) -->
+    <div class="audio-unlock-banner hidden" id="audioUnlockBanner" onclick="unlockAudio()">
+      <div class="aub-icon">🔊</div>
+      <div class="aub-label">TAP TO ENABLE AUDIO</div>
+      <div class="aub-sub">iOS requires one tap to unlock audio</div>
+    </div>
+    <!-- Self tile -->
+    <div class="self-tile" id="selfTile">
+      <video id="selfPreview" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+      <div class="tile-name" style="color:var(--green)">YOU</div>
+      <div class="self-tile-controls">
+        <button class="tile-ctrl" id="selfCamBtn" onclick="toggleMyVideo()" title="Toggle my video">📷</button>
+        <button class="tile-ctrl" id="selfMicBtn" onclick="toggleMyAudio()" title="Toggle my mic">🎙</button>
+      </div>
+    </div>
+    <!-- Peer tiles injected by JS into #peerTilesContainer -->
+    <div id="peerTilesContainer" style="display:contents"></div>
+  </div>
+
+  <!-- ── CAPTURE BAR ── -->
   <div class="capture-bar">
-    <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="display:flex;flex-direction:column;gap:5px">
       <button class="pause-btn" id="pauseBtn" onclick="togglePause()" title="Pause / Resume camera">⏸</button>
       <button class="switch-btn" onclick="switchCamera()" title="Switch camera">⟳</button>
     </div>
@@ -395,7 +566,7 @@
     </div>
   </div>
 
-  <!-- Motion alert settings on capture page -->
+  <!-- Motion alert settings -->
   <div class="alert-settings">
     <div class="alert-toggle-row">
       <div>
@@ -545,6 +716,14 @@ async function joinRoom(creator){
   if(!name||!room){ document.getElementById('joinErr').style.display='block'; return; }
   if(room.length < 4){ document.getElementById('joinErr').style.display='block'; document.getElementById('joinErr').textContent='⚠ Room code must be at least 4 characters'; return; }
 
+  // FIX: Prime AudioContext during this user gesture (Join button tap)
+  // This gives us the best chance of audio working on iOS without extra taps
+  try {
+    window._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(window._audioCtx.state === 'suspended') await window._audioCtx.resume();
+    audioUnlocked = true;
+  } catch(e){ console.warn('AudioContext prime failed:', e); }
+
   myName=name; myRoom=room; isCreator=!!creator;
   saveLocal();
   document.getElementById('joinErr').style.display='none';
@@ -605,6 +784,9 @@ function initPeer(){
   });
 
   peer.on('connection', conn => { setupConn(conn); });
+
+  // Handle incoming video/audio calls
+  peer.on('call', call => { answerCall(call); });
 
   peer.on('error', e => {
     console.warn('Peer error:', e.type, e);
@@ -680,6 +862,10 @@ function setupConn(conn){
       memberMap[conn.peer] = { name:'...', gps:null, lastSeen:Date.now(), emoji:'👤' };
       renderMembers();
     }
+
+    // Start video call with this peer
+    callPeer(conn.peer);
+    updateStrip();
   });
 
   conn.on('data', data => { handleMessage(conn.peer, data); });
@@ -688,6 +874,9 @@ function setupConn(conn){
     delete connections[conn.peer];
     const name = memberMap[conn.peer]?.name || 'A member';
     delete memberMap[conn.peer];
+    // Close media call
+    if(mediaCalls[conn.peer]){ mediaCalls[conn.peer].close(); delete mediaCalls[conn.peer]; }
+    removePeerTile(conn.peer);
     updatePeerCount();
     renderMembers();
     showToast(`👋 ${name} left`);
@@ -775,6 +964,10 @@ function handleMessage(fromPeer, msg){
       if(wa) triggerWhatsApp(msg.name, msg.magnitude, msg.gps);
       break;
 
+    case 'av-state':
+      onPeerAVState(fromPeer, msg);
+      break;
+
     case 'sys':
       addFeedItem({type:'sys', text:msg.text, ts:msg.ts});
       break;
@@ -787,6 +980,7 @@ function updatePeerCount(){
   document.getElementById('capPeers').textContent=n;
   const dot=document.getElementById('connDot');
   dot.className='conn-dot'+(n>0?' ok':' partial');
+  updateStrip();
   updateBadges();
 }
 
@@ -814,37 +1008,326 @@ function startGPS(){
   },{enableHighAccuracy:true,maximumAge:3000,timeout:15000});
 }
 
-// ─── CAMERA ───
+// ─── CAMERA & MEDIA STREAM ───
 let cameraPaused = false;
+let myMediaStream = null;   // combined video+audio stream for calls
+let myVideoEnabled = true;
+let myAudioEnabled = true;
+let mediaCalls = {};        // peerId -> MediaConnection
+let peerStates = {};        // peerId -> { videoMuted, audioMuted }
+
 async function startCamera(){
-  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
   try{
-    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode,width:{ideal:1280},height:{ideal:720}},audio:false});
-    document.getElementById('camVideo').srcObject=camStream;
-    document.getElementById('camInit').style.display='none';
-    cameraPaused=false;
+    // Get camera-only stream for viewfinder
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode, width:{ideal:1280}, height:{ideal:720} },
+      audio: false
+    });
+    document.getElementById('camVideo').srcObject = camStream;
+    document.getElementById('camInit').style.display = 'none';
+    cameraPaused = false;
     updatePauseUI();
-  }catch(e){console.warn('Cam:',e);}
+    // Build media stream (video+audio) for calls
+    await buildMyMediaStream();
+  } catch(e){ console.warn('Cam:', e); }
 }
-async function switchCamera(){facingMode=facingMode==='environment'?'user':'environment';await startCamera();}
+
+async function buildMyMediaStream(){
+  // Stop previous media stream tracks (audio only — keep camStream video)
+  if(myMediaStream){
+    myMediaStream.getAudioTracks().forEach(t=>t.stop());
+  }
+  try {
+    // Get audio stream
+    const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    // Combine camera video + mic audio into one stream
+    myMediaStream = new MediaStream([
+      ...camStream.getVideoTracks(),
+      ...audioStream.getAudioTracks()
+    ]);
+    // Show self preview in strip
+    const selfPreview = document.getElementById('selfPreview');
+    selfPreview.srcObject = new MediaStream(camStream.getVideoTracks());
+
+    // Re-call all currently connected peers with updated stream
+    Object.keys(connections).forEach(pid => callPeer(pid));
+  } catch(e){
+    // Audio denied — use video only
+    myMediaStream = new MediaStream([...camStream.getVideoTracks()]);
+    const selfPreview = document.getElementById('selfPreview');
+    selfPreview.srcObject = new MediaStream(camStream.getVideoTracks());
+    Object.keys(connections).forEach(pid => callPeer(pid));
+    console.warn('Audio unavailable:', e);
+  }
+}
+
+async function switchCamera(){
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  await startCamera();
+}
+
+// ── My video/audio toggles ──
+function toggleMyVideo(){
+  myVideoEnabled = !myVideoEnabled;
+  if(myMediaStream) myMediaStream.getVideoTracks().forEach(t => t.enabled = myVideoEnabled);
+  if(camStream)     camStream.getVideoTracks().forEach(t => t.enabled = myVideoEnabled);
+  const btn = document.getElementById('selfCamBtn');
+  btn.textContent   = myVideoEnabled ? '📷' : '🚫';
+  btn.style.color   = myVideoEnabled ? '' : 'var(--red)';
+  // Show/hide self preview
+  document.getElementById('selfPreview').style.opacity = myVideoEnabled ? '1' : '0.2';
+  // Notify peers via data channel
+  broadcast({ type:'av-state', videoEnabled: myVideoEnabled, audioEnabled: myAudioEnabled });
+}
+
+function toggleMyAudio(){
+  myAudioEnabled = !myAudioEnabled;
+  if(myMediaStream) myMediaStream.getAudioTracks().forEach(t => t.enabled = myAudioEnabled);
+  const btn = document.getElementById('selfMicBtn');
+  btn.textContent = myAudioEnabled ? '🎙' : '🔇';
+  btn.style.color = myAudioEnabled ? '' : 'var(--red)';
+  broadcast({ type:'av-state', videoEnabled: myVideoEnabled, audioEnabled: myAudioEnabled });
+}
+
+// ── Call a peer with my media stream ──
+function callPeer(peerId){
+  if(!myMediaStream || !peer || peer.destroyed) return;
+  // Close existing call if any
+  if(mediaCalls[peerId]){
+    mediaCalls[peerId].close();
+    delete mediaCalls[peerId];
+  }
+  try{
+    const call = peer.call(peerId, myMediaStream, { metadata:{ name: myName } });
+    mediaCalls[peerId] = call;
+    setupCall(call, peerId);
+  } catch(e){ console.warn('callPeer error:', e); }
+}
+
+// ── Handle incoming media call ──
+function answerCall(call){
+  const peerId = call.peer;
+  if(mediaCalls[peerId]){ mediaCalls[peerId].close(); }
+  mediaCalls[peerId] = call;
+  call.answer(myMediaStream || new MediaStream());
+  setupCall(call, peerId);
+}
+
+function setupCall(call, peerId){
+  call.on('stream', remoteStream => {
+    addOrUpdatePeerTile(peerId, remoteStream);
+  });
+  call.on('close', () => {
+    removePeerTile(peerId);
+    delete mediaCalls[peerId];
+  });
+  call.on('error', e => {
+    console.warn('Call error', peerId, e);
+    removePeerTile(peerId);
+  });
+}
+
+// ── Participants strip tile management ──
+// KEY FIX: iOS Safari silently drops audio from <video> elements with WebRTC streams.
+// Solution: use a separate hidden <audio> element for each peer's audio track.
+// The <video> element only gets the video track (muted). Audio plays through <audio>.
+let peerAudioEls = {}; // peerId -> <audio> element
+
+function addOrUpdatePeerTile(peerId, stream){
+  const name  = memberMap[peerId]?.name || 'Peer';
+  const em    = nameEmoji(name);
+  let tile    = document.getElementById('tile-'+peerId);
+
+  if(!tile){
+    tile = document.createElement('div');
+    tile.className = 'peer-tile';
+    tile.id = 'tile-'+peerId;
+    tile.innerHTML = `
+      <video id="vid-${peerId}" autoplay playsinline muted
+        style="width:100%;height:100%;object-fit:cover;display:block;background:#000"></video>
+      <div class="vid-off">
+        <div class="vid-off-icon">${em}</div>
+        <div class="vid-off-name">${name}</div>
+      </div>
+      <div class="tile-connecting" id="conn-${peerId}">
+        <div class="tile-conn-dot"></div>
+        <div class="tile-conn-label">CONNECTING</div>
+      </div>
+      <div class="tile-name">${name}</div>
+      <div class="peer-tile-controls">
+        <button class="tile-ctrl" id="mute-vid-${peerId}" onclick="togglePeerVideo('${peerId}')" title="Toggle video">📷</button>
+        <button class="tile-ctrl" id="mute-aud-${peerId}" onclick="togglePeerAudio('${peerId}')" title="Mute audio">🔊</button>
+      </div>`;
+    document.getElementById('peerTilesContainer').appendChild(tile);
+    updateStrip();
+  }
+
+  // ── VIDEO: assign only video tracks to <video muted> ──
+  const vid = document.getElementById('vid-'+peerId);
+  if(vid){
+    const videoOnlyStream = new MediaStream(stream.getVideoTracks());
+    vid.srcObject = videoOnlyStream;
+    vid.play().catch(()=>{});
+    const connOverlay = document.getElementById('conn-'+peerId);
+    if(connOverlay) connOverlay.style.display = 'none';
+  }
+
+  // ── AUDIO: assign only audio tracks to a hidden <audio> element ──
+  const audioTracks = stream.getAudioTracks();
+  if(audioTracks.length > 0){
+    // Remove previous audio element if any
+    if(peerAudioEls[peerId]){
+      peerAudioEls[peerId].srcObject = null;
+      peerAudioEls[peerId].remove();
+    }
+    const audioEl = document.createElement('audio');
+    audioEl.id = 'aud-'+peerId;
+    audioEl.autoplay = true;
+    // NOT muted — this is the whole point
+    audioEl.style.display = 'none';
+    audioEl.srcObject = new MediaStream(audioTracks);
+    document.body.appendChild(audioEl); // must be in DOM to play
+    peerAudioEls[peerId] = audioEl;
+
+    // Play — works on desktop immediately; iOS needs the gesture we captured at Join
+    audioEl.play().catch(e => {
+      console.warn('Audio autoplay blocked for', peerId, e);
+      // Show a one-time tap prompt if not already shown
+      showAudioUnlockBanner(audioEl);
+    });
+  }
+
+  updatePeerTileState(peerId);
+}
+
+function removePeerTile(peerId){
+  const tile = document.getElementById('tile-'+peerId);
+  if(tile) tile.remove();
+  // Clean up dedicated audio element
+  if(peerAudioEls[peerId]){
+    peerAudioEls[peerId].srcObject = null;
+    peerAudioEls[peerId].remove();
+    delete peerAudioEls[peerId];
+  }
+  delete peerStates[peerId];
+  updateStrip();
+}
+
+function updateStrip(){
+  const strip = document.getElementById('participantsStrip');
+  strip.classList.toggle('has-peers', Object.keys(connections).length > 0);
+}
+
+// ── Audio unlock banner (iOS one-time tap) ──
+let audioUnlockPending = [];
+function showAudioUnlockBanner(audioEl){
+  if(audioEl) audioUnlockPending.push(audioEl);
+  const b = document.getElementById('audioUnlockBanner');
+  if(b) b.classList.remove('hidden');
+}
+
+function unlockAudio(){
+  // Resume/create AudioContext in this user gesture
+  if(!window._audioCtx){
+    window._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if(window._audioCtx.state === 'suspended') window._audioCtx.resume();
+
+  // Play all pending audio elements
+  audioUnlockPending.forEach(el => {
+    el.play().catch(e => console.warn('unlock play failed:', e));
+  });
+  audioUnlockPending = [];
+
+  // Also retry all active peer audio elements
+  Object.values(peerAudioEls).forEach(el => {
+    el.play().catch(()=>{});
+  });
+
+  const b = document.getElementById('audioUnlockBanner');
+  if(b) b.classList.add('hidden');
+  showToast('🔊 Audio enabled');
+}
+
+// ── Per-peer video/audio controls ──
+function togglePeerVideo(peerId){
+  if(!peerStates[peerId]) peerStates[peerId] = { videoMuted:false, audioMuted:false };
+  peerStates[peerId].videoMuted = !peerStates[peerId].videoMuted;
+  const vid = document.getElementById('vid-'+peerId);
+  if(vid) vid.style.display = peerStates[peerId].videoMuted ? 'none' : 'block';
+  updatePeerTileState(peerId);
+}
+
+function togglePeerAudio(peerId){
+  if(!peerStates[peerId]) peerStates[peerId] = { videoMuted:false, audioMuted:false };
+  peerStates[peerId].audioMuted = !peerStates[peerId].audioMuted;
+  // Mute/unmute the dedicated audio element — not the video
+  const audioEl = peerAudioEls[peerId];
+  if(audioEl){
+    audioEl.muted = peerStates[peerId].audioMuted;
+    if(!peerStates[peerId].audioMuted){
+      audioEl.play().catch(()=>{});
+    }
+  }
+  updatePeerTileState(peerId);
+}
+
+function updatePeerTileState(peerId){
+  const state = peerStates[peerId] || { videoMuted:false, audioMuted:false };
+  const tile  = document.getElementById('tile-'+peerId);
+  const vid   = document.getElementById('vid-'+peerId);
+  const vBtn  = document.getElementById('mute-vid-'+peerId);
+  const aBtn  = document.getElementById('mute-aud-'+peerId);
+  if(!tile) return;
+
+  tile.classList.toggle('video-off', state.videoMuted);
+  if(vid) vid.style.display = state.videoMuted ? 'none' : 'block';
+
+  if(vBtn){
+    vBtn.textContent = state.videoMuted ? '🚫' : '📷';
+    vBtn.style.color = state.videoMuted ? 'var(--amber)' : '';
+  }
+  if(aBtn){
+    aBtn.textContent = state.audioMuted ? '🔇' : '🔊';
+    aBtn.style.color = state.audioMuted ? 'var(--red)' : '';
+  }
+}
+
+// ── Handle av-state broadcast from peer ──
+function onPeerAVState(fromPeer, msg){
+  if(!peerStates[fromPeer]) peerStates[fromPeer] = {};
+  // Update tile name label with mute indicators
+  const tile = document.getElementById('tile-'+fromPeer);
+  const nameEl = tile?.querySelector('.tile-name');
+  if(nameEl){
+    const n = memberMap[fromPeer]?.name || 'Peer';
+    const icons = (msg.videoEnabled === false ? '🚫' : '') + (msg.audioEnabled === false ? '🔇' : '');
+    nameEl.textContent = icons ? n + ' ' + icons : n;
+  }
+  const vidOffName = tile?.querySelector('.vid-off-name');
+  if(vidOffName) vidOffName.textContent = memberMap[fromPeer]?.name || 'Peer';
+}
 
 function togglePause(){
-  if(!camStream){showToast('⚠ Camera not active');return;}
-  cameraPaused=!cameraPaused;
-  const vid=document.getElementById('camVideo');
+  if(!camStream){ showToast('⚠ Camera not active'); return; }
+  cameraPaused = !cameraPaused;
+  const vid = document.getElementById('camVideo');
   if(cameraPaused){
     vid.pause();
-    camStream.getVideoTracks().forEach(t=>t.enabled=false);
+    camStream.getVideoTracks().forEach(t => t.enabled = false);
+    if(myMediaStream) myMediaStream.getVideoTracks().forEach(t => t.enabled = false);
   } else {
     vid.play();
-    camStream.getVideoTracks().forEach(t=>t.enabled=true);
+    camStream.getVideoTracks().forEach(t => t.enabled = true);
+    if(myMediaStream && myVideoEnabled) myMediaStream.getVideoTracks().forEach(t => t.enabled = true);
   }
   updatePauseUI();
 }
 
 function updatePauseUI(){
-  const btn=document.getElementById('pauseBtn');
-  const overlay=document.getElementById('pausedOverlay');
+  const btn = document.getElementById('pauseBtn');
+  const overlay = document.getElementById('pausedOverlay');
   if(cameraPaused){
     btn.textContent='▶'; btn.classList.add('paused');
     overlay.classList.add('show');
