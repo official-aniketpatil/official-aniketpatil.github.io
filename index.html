@@ -2356,79 +2356,18 @@
         setupConn(conn);
         setTimeout(() => {
           if (conn && !conn.open) {
-            toast("⚠ Host not responding - retrying...");
             conn.close();
-            hostRetryTimer = setTimeout(connectHost, 2000);
+            hostRetryTimer = setTimeout(connectHost, 3000);
           }
         }, 8000);
       }
 
-      // Host re-election: when host disconnects, peer with lowest ID takes over
       function onPeerLeft(pid) {
-        if (pid !== hostId()) return;
-        if (myPeerId === hostId()) return;
-        const all = [myPeerId, ...Object.keys(connections)].sort();
-        if (all[0] === myPeerId) {
-          toast("🔄 Becoming new host…", 3000);
-          addFeedItem({
-            type: "sys",
-            text: "Host left — re-electing",
-            ts: Date.now(),
-          });
-          becomeHost();
-        } else {
+        if (pid === hostId()) {
+          setStatus("HOST LEFT - RECONNECTING…", "var(--amber)");
           clearTimeout(hostRetryTimer);
-          hostRetryTimer = setTimeout(connectHost, 2500);
+          hostRetryTimer = setTimeout(connectHost, 2000);
         }
-      }
-
-      function becomeHost() {
-        const known = Object.keys(connections).filter((p) => p !== hostId());
-        Object.values(mediaCalls).forEach((c) => {
-          try {
-            c.close();
-          } catch (_) {}
-        });
-        mediaCalls = {};
-        if (peer) peer.destroy();
-        peer = null;
-        connections = {};
-        isCreator = true;
-        peer = new Peer(hostId(), {
-          debug: 1,
-          config: {
-            iceServers: [
-              { urls: "stun:stun.l.google.com:19302" },
-              { urls: "stun:stun1.l.google.com:19302" },
-              {
-                urls: "turn:a.relay.metered.ca:80",
-                username: "87e869b2239d8dfa5ca0fc47",
-                credential: "Sy5iCvXuD+xgLRvC",
-              },
-              {
-                urls: "turn:a.relay.metered.ca:443",
-                username: "87e869b2239d8dfa5ca0fc47",
-                credential: "Sy5iCvXuD+xgLRvC",
-              },
-            ],
-          },
-        });
-        peer.on("open", (id) => {
-          myPeerId = id;
-          setStatus("HOSTING", "var(--green)");
-          dot("ok");
-          known.forEach((p) =>
-            setupConn(
-              peer.connect(p, { reliable: true, serialization: "json" }),
-            ),
-          );
-        });
-        peer.on("connection", (conn) => setupConn(conn));
-        peer.on("call", (call) => answerCall(call));
-        peer.on("error", (e) => console.warn("[new-host]", e.type));
-        peer.on("disconnected", () => {
-          if (peer && !peer.destroyed) peer.reconnect();
-        });
       }
 
       function setupConn(conn) {
