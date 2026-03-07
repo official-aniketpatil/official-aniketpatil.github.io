@@ -1386,7 +1386,7 @@ const connRetries = {}; // pid → attempt count
 // ════════════════════════════════
 // PEER — FULL MESH + HOST RE-ELECTION
 // ════════════════════════════════
-const hostId=()=>'GL-'+myRoom+'-'+Math.random().toString(36).slice(2,4);
+const hostId=()=>'GL-'+myRoom;
 const uniqId=()=>'GL-'+myRoom+'-'+myName.replace(/\W/g,'').slice(0,8)+'-'+Date.now().toString(36).slice(-4)+'-'+Math.random().toString(36).slice(2,5);
 
 function makePeer(id, onOpen){
