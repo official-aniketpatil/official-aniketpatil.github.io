@@ -1,315 +1,911 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aniket Patil - Resume</title>
-    <script src="https://platform.linkedin.com/badges/js/profile.js" async defer></script> <!-- LinkedIn Badge Script -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> <!-- FontAwesome for Icons -->
-    <style>
-        /* General Styles */
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            color: #333;
-            background-color: #f9f9f9;
-            display: flex;
-            justify-content: center; /* Center content horizontally */
-            align-items: flex-start; /* Align content at the top of the viewport */
-            min-height: 100%; /* Ensure the body stretches to fill the height of the viewport */
-        }
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="GeoLog"/>
+  <meta name="theme-color" content="#050810"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
+  <title>GeoLog P2P</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#050810; --bg2:#0a0d18; --panel:#0d1220;
+      --border:#1a2540; --blue:#00b4ff; --blue-dim:#002a40;
+      --green:#00e676; --green-dim:#003320;
+      --amber:#ffab00; --red:#ff3d3d; --purple:#b388ff;
+      --text:#c5d8f0; --muted:#2a3a55;
+      --glow-b:rgba(0,180,255,0.15); --glow-g:rgba(0,230,118,0.15);
+    }
+    html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;overflow:hidden;}
+    body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:200;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.03) 3px,rgba(0,0,0,0.03) 4px);}
 
-        .main-container {
-            width: 100%;
-            max-width: 1000px; /* Max width of the resume */
-            padding: 20px;
-            box-sizing: border-box;
-        }
+    /* ── JOIN SCREEN ── */
+    #joinScreen{
+      position:fixed;inset:0;z-index:500;
+      background:var(--bg);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:0;padding:2rem;
+    }
+    .join-logo{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:0.15em;color:var(--blue);text-shadow:0 0 30px var(--blue);margin-bottom:4px;}
+    .join-logo span{color:var(--green);}
+    .join-sub{font-size:0.6rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:28px;}
+    .join-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:14px;}
+    .join-label{font-size:0.55rem;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;}
+    .join-input{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:0.85rem;padding:10px 12px;width:100%;outline:none;letter-spacing:0.05em;}
+    .join-input:focus{border-color:var(--blue-dim);}
+    .join-input::placeholder{color:var(--muted);}
+    .room-row{display:flex;gap:8px;}
+    .room-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:1.6rem;padding:8px 12px;outline:none;letter-spacing:0.2em;text-align:center;}
+    .room-input:focus{border-color:var(--blue-dim);}
+    .room-input::placeholder{color:var(--muted);font-size:1rem;letter-spacing:0.1em;}
+    .gen-btn{background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:0.7rem;padding:8px 10px;cursor:pointer;white-space:nowrap;font-family:'IBM Plex Mono',monospace;}
+    .gen-btn:active{background:var(--bg2);}
+    .join-btn{padding:12px;background:transparent;border:1px solid var(--blue);border-radius:4px;color:var(--blue);font-family:'IBM Plex Mono',monospace;font-size:0.8rem;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;box-shadow:0 0 20px var(--glow-b);transition:all 0.2s;}
+    .join-btn:active{background:rgba(0,180,255,0.08);}
+    .join-note{font-size:0.55rem;color:var(--muted);text-align:center;line-height:1.8;}
+    .join-err{font-size:0.6rem;color:var(--red);text-align:center;display:none;}
 
-        /* Resume Section */
-        .resume-container {
-            margin: 0 auto; /* Center the resume container */
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            width: 100%; /* Ensures it fills available space */
-        }
+    /* ── TOPBAR ── */
+    .topbar{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,8,16,0.96);border-bottom:1px solid var(--border);padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 8px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px);}
+    .logo{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:0.15em;color:var(--blue);text-shadow:0 0 16px var(--blue);}
+    .logo span{color:var(--green);}
+    .topbar-center{display:flex;flex-direction:column;align-items:center;gap:1px;}
+    .room-badge{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.3em;color:var(--amber);text-shadow:0 0 10px rgba(255,171,0,0.4);}
+    .peer-count{font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;}
+    .peer-count span{color:var(--green);}
+    .conn-dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:blink 1s infinite;}
+    .conn-dot.ok{background:var(--green);box-shadow:0 0 8px var(--green);animation:none;}
+    .conn-dot.partial{background:var(--amber);box-shadow:0 0 8px var(--amber);animation:blink 2s infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
 
-        header h1 {
-            margin-bottom: 5px;
-            color: #333;
-            font-size: 2.5em;
-            font-weight: 700;
-            cursor: pointer; /* Add cursor pointer to indicate it's clickable */
-            text-align: center;
-        }
+    /* ── PAGES ── */
+    .page{position:fixed;inset:0;padding-top:calc(env(safe-area-inset-top,0px) + 50px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 64px);overflow-y:auto;overflow-x:hidden;opacity:0;pointer-events:none;transform:translateX(16px);transition:opacity 0.2s,transform 0.2s;}
+    .page.active{opacity:1;pointer-events:all;transform:translateX(0);}
 
-        h2, h3 {
-            color: #4A4A4A;
-            font-weight: 600;
-        }
+    /* ── CAPTURE PAGE ── */
+    #page-capture{display:flex;flex-direction:column;}
+    .gps-bar{display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--panel);border-bottom:1px solid var(--border);font-size:0.58rem;letter-spacing:0.08em;flex-shrink:0;}
+    .gps-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+    .gps-dot.locked{background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite;}
+    .gps-dot.searching{background:var(--amber);box-shadow:0 0 6px var(--amber);animation:blink 0.8s infinite;}
+    .gps-coords{color:var(--blue);flex:1;font-size:0.56rem;}
+    .viewfinder-wrap{position:relative;flex:1;background:#000;min-height:0;overflow:hidden;}
+    #camVideo{width:100%;height:100%;object-fit:cover;display:block;}
+    .vf-overlay{position:absolute;inset:0;pointer-events:none;}
+    .vf-overlay::before,.vf-overlay::after{content:'';position:absolute;width:36px;height:36px;border-color:var(--blue);border-style:solid;opacity:0.6;}
+    .vf-overlay::before{top:14px;left:14px;border-width:2px 0 0 2px;}
+    .vf-overlay::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
+    .vf-tr{position:absolute;top:14px;right:14px;width:36px;height:36px;border-top:2px solid var(--blue);border-right:2px solid var(--blue);opacity:0.6;pointer-events:none;}
+    .vf-bl{position:absolute;bottom:14px;left:14px;width:36px;height:36px;border-bottom:2px solid var(--blue);border-left:2px solid var(--blue);opacity:0.6;pointer-events:none;}
+    .vf-gps{position:absolute;bottom:10px;left:10px;right:10px;background:rgba(5,8,16,0.72);border:1px solid var(--border);border-radius:4px;padding:6px 10px;font-size:0.52rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;backdrop-filter:blur(4px);pointer-events:none;}
+    .vf-lbl{color:var(--muted);letter-spacing:0.08em;}
+    .vf-val{color:var(--blue);margin-top:1px;font-size:0.58rem;}
+    .flash{position:absolute;inset:0;background:white;opacity:0;pointer-events:none;transition:opacity 0.05s;z-index:10;}
+    .flash.go{opacity:1;}
+    .cam-init{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--bg2);}
+    .cam-init p{font-size:0.65rem;color:var(--muted);letter-spacing:0.1em;}
+    .cam-init-btn{padding:9px 22px;background:transparent;border:1px solid var(--blue);border-radius:3px;color:var(--blue);font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;}
+    .capture-bar{padding:12px 18px;background:var(--panel);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .cap-meta{font-size:0.52rem;color:var(--muted);line-height:1.9;}
+    .cap-meta .v{color:var(--text);}
+    .capture-btn{width:68px;height:68px;border-radius:50%;background:transparent;border:3px solid var(--blue);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;box-shadow:0 0 20px var(--glow-b);transition:transform 0.15s;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+    .capture-btn::after{content:'';position:absolute;width:54px;height:54px;border-radius:50%;background:var(--blue);opacity:0.12;}
+    .capture-btn:active{transform:scale(0.93);}
+    .capture-btn.ok{border-color:var(--green);box-shadow:0 0 30px var(--glow-g);}
+    .cap-icon{font-size:1.3rem;z-index:1;}
+    .switch-btn{width:38px;height:38px;background:var(--bg2);border:1px solid var(--border);border-radius:50%;color:var(--muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
 
-        h2 {
-            font-size: 1.75em;
-            margin-top: 20px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
-        }
+    /* ── MEMBERS PAGE ── */
+    #page-members{padding:0;}
+    .members-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:rgba(5,8,16,0.96);z-index:10;backdrop-filter:blur(8px);}
+    .section-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:0.2em;color:var(--blue);}
+    .members-list{padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+    .member-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px 14px;display:flex;align-items:center;gap:12px;animation:fadeIn 0.3s ease both;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .member-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;border:2px solid var(--border);}
+    .member-info{flex:1;min-width:0;}
+    .member-name{font-size:0.75rem;color:var(--text);letter-spacing:0.05em;}
+    .member-name.you{color:var(--green);}
+    .member-coords{font-size:0.55rem;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .member-coords span{color:var(--blue);}
+    .member-time{font-size:0.5rem;color:var(--muted);margin-top:2px;}
+    .member-status{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+    .status-pill{font-size:0.48rem;padding:2px 7px;border-radius:10px;letter-spacing:0.1em;white-space:nowrap;}
+    .pill-green{background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2);}
+    .pill-amber{background:rgba(255,171,0,0.1);color:var(--amber);border:1px solid rgba(255,171,0,0.2);}
+    .pill-muted{background:rgba(42,58,85,0.3);color:var(--muted);border:1px solid var(--border);}
+    .map-btn-sm{font-size:0.5rem;padding:3px 8px;background:transparent;border:1px solid var(--blue-dim);border-radius:2px;color:var(--blue);cursor:pointer;font-family:'IBM Plex Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;}
 
-        h3 {
-            font-size: 1.4em;
-            margin-top: 15px;
-        }
+    /* Motion alert broadcast banner */
+    .alert-banner{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 14px;margin:10px 12px 0;
+      background:rgba(255,61,61,0.08);border:1px solid rgba(255,61,61,0.3);
+      border-radius:6px;font-size:0.6rem;color:var(--red);
+      opacity:0;pointer-events:none;transition:opacity 0.3s;
+    }
+    .alert-banner.show{opacity:1;pointer-events:all;}
+    .alert-banner-icon{font-size:1.2rem;}
 
-        .skills, .achievements {
-            list-style: none;
-            padding-left: 0;
-        }
+    /* ── FEED PAGE ── */
+    #page-feed{padding:0;}
+    .feed-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:rgba(5,8,16,0.96);z-index:10;backdrop-filter:blur(8px);}
 
-        .skills div, .achievements li {
-            margin-bottom: 10px;
-        }
+    /* Chat input */
+    .chat-bar{
+      position:sticky;bottom:0;
+      background:rgba(5,8,16,0.97);
+      border-top:1px solid var(--border);
+      padding:8px 12px;
+      display:flex;gap:8px;align-items:center;
+      backdrop-filter:blur(8px);
+    }
+    .chat-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:0.68rem;padding:8px 14px;outline:none;}
+    .chat-input:focus{border-color:var(--blue-dim);}
+    .chat-input::placeholder{color:var(--muted);}
+    .send-btn{width:36px;height:36px;background:var(--blue);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;transition:transform 0.1s;-webkit-tap-highlight-color:transparent;}
+    .send-btn:active{transform:scale(0.9);}
 
-        /* Mobile Styles */
-        @media (max-width: 768px) {
-            .resume-container {
-                width: 100%;
-                padding: 15px;
-            }
+    .feed-list{padding:10px 12px;display:flex;flex-direction:column;gap:10px;}
 
-            header h1 {
-                font-size: 2.2em;
-            }
+    /* Feed items */
+    .feed-item{animation:fadeIn 0.3s ease both;}
 
-            h2 {
-                font-size: 1.5em;
-            }
+    /* Chat bubble */
+    .chat-bubble{display:flex;gap:8px;align-items:flex-end;}
+    .chat-bubble.mine{flex-direction:row-reverse;}
+    .bubble-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;}
+    .bubble-body{max-width:75%;}
+    .bubble-name{font-size:0.5rem;color:var(--muted);letter-spacing:0.08em;margin-bottom:3px;}
+    .chat-bubble.mine .bubble-name{text-align:right;}
+    .bubble-text{background:var(--panel);border:1px solid var(--border);border-radius:12px;border-bottom-left-radius:3px;padding:8px 12px;font-size:0.68rem;color:var(--text);line-height:1.5;}
+    .chat-bubble.mine .bubble-text{background:var(--blue-dim);border-color:rgba(0,180,255,0.2);border-bottom-left-radius:12px;border-bottom-right-radius:3px;color:var(--blue);}
+    .bubble-time{font-size:0.48rem;color:var(--muted);margin-top:3px;}
+    .chat-bubble.mine .bubble-time{text-align:right;}
 
-            h3 {
-                font-size: 1.2em;
-            }
+    /* Photo record in feed */
+    .feed-record{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+    .feed-record.alert-rec{border-color:rgba(255,61,61,0.3);}
+    .feed-record-header{padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+    .feed-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;}
+    .feed-author{font-size:0.6rem;color:var(--text);}
+    .feed-author .you-tag{color:var(--green);}
+    .feed-meta{font-size:0.5rem;color:var(--muted);margin-top:1px;}
+    .feed-photo{width:100%;display:block;max-height:280px;object-fit:cover;cursor:pointer;}
+    .feed-details{padding:8px 12px;display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+    .feed-detail-item .fd-lbl{font-size:0.5rem;color:var(--muted);letter-spacing:0.08em;}
+    .feed-detail-item .fd-val{font-size:0.62rem;color:var(--blue);margin-top:1px;}
+    .feed-actions{display:flex;border-top:1px solid var(--border);}
+    .feed-action{flex:1;padding:8px;background:transparent;border:none;border-right:1px solid var(--border);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:0.52rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;}
+    .feed-action:last-child{border-right:none;}
+    .feed-action:active{background:rgba(255,255,255,0.02);}
 
-            .skills div, .achievements li {
-                font-size: 1.1em;
-            }
+    /* Alert feed item */
+    .feed-alert{background:rgba(255,61,61,0.05);border:1px solid rgba(255,61,61,0.25);border-radius:6px;padding:10px 12px;display:flex;gap:10px;align-items:center;}
+    .feed-alert-icon{font-size:1.4rem;flex-shrink:0;}
+    .feed-alert-body{flex:1;min-width:0;}
+    .feed-alert-who{font-size:0.6rem;color:var(--red);letter-spacing:0.05em;}
+    .feed-alert-detail{font-size:0.55rem;color:var(--muted);margin-top:3px;line-height:1.7;}
+    .feed-alert-detail span{color:var(--text);}
 
-            /* LinkedIn Link as an Icon in Mobile */
-            .contact-info a#linkedin-link {
-                display: none; /* Hide text link on mobile */
-            }
+    /* ── BOTTOM NAV ── */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:150;background:rgba(5,8,16,0.97);border-top:1px solid var(--border);padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 6px);display:flex;backdrop-filter:blur(12px);}
+    .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px;font-size:0.48rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);transition:color 0.2s;-webkit-tap-highlight-color:transparent;position:relative;}
+    .nav-tab svg{width:20px;height:20px;}
+    .nav-tab.active{color:var(--blue);}
+    .nav-tab.active svg{filter:drop-shadow(0 0 5px var(--blue));}
+    .nav-badge{position:absolute;top:2px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:0.42rem;font-weight:600;min-width:14px;height:14px;border-radius:7px;padding:0 3px;display:none;align-items:center;justify-content:center;}
 
-            .contact-info a#linkedin-icon {
-                display: inline-block;
-                font-size: 1.5em;
-                color: #3498db;
-                text-decoration: none;
-            }
+    /* ── MODAL ── */
+    .modal{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.94);display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px)+16px) 16px calc(env(safe-area-inset-bottom,0px)+16px);overflow-y:auto;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+    .modal.open{opacity:1;pointer-events:all;}
+    .modal-close{align-self:flex-end;background:transparent;border:1px solid var(--border);color:var(--muted);width:36px;height:36px;border-radius:50%;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+    .modal-img{width:100%;max-width:500px;border-radius:6px;border:1px solid var(--border);}
+    .modal-info{width:100%;max-width:500px;margin-top:12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+    .modal-row{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);font-size:0.62rem;}
+    .modal-row:last-child{border-bottom:none;}
+    .modal-lbl{color:var(--muted);font-size:0.56rem;letter-spacing:0.1em;}
+    .modal-val{color:var(--blue);}
 
-            .contact-info a#linkedin-icon:hover {
-                text-decoration: none;
-                color: #2980b9;
-            }
+    /* Toast */
+    .toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+76px);left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:9px 18px;font-size:0.62rem;letter-spacing:0.08em;color:var(--text);z-index:400;opacity:0;pointer-events:none;transition:opacity 0.25s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+    .toast.show{opacity:1;}
 
-            /* Email as an Icon */
-            .contact-info a#email-link {
-                display: none; /* Hide email text link on mobile */
-            }
+    canvas#snap{display:none;}
 
-            .contact-info a#email-icon {
-                display: inline-block;
-                font-size: 1.5em;
-                color: #3498db;
-                text-decoration: none;
-            }
+    /* Motion alert settings inline */
+    .alert-settings{padding:10px 12px 0;display:flex;flex-direction:column;gap:8px;}
+    .alert-toggle-row{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
+    .atl{font-size:0.62rem;color:var(--text);}
+    .ats{font-size:0.53rem;color:var(--muted);margin-top:2px;}
+    .toggle{position:relative;width:42px;height:22px;flex-shrink:0;}
+    .toggle input{opacity:0;width:0;height:0;}
+    .toggle-slider{position:absolute;inset:0;background:var(--bg2);border:1px solid var(--border);border-radius:11px;cursor:pointer;transition:0.3s;}
+    .toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:var(--muted);border-radius:50%;transition:0.3s;}
+    .toggle input:checked+.toggle-slider{background:var(--green-dim);border-color:rgba(0,230,118,0.3);}
+    .toggle input:checked+.toggle-slider::before{transform:translateX(20px);background:var(--green);box-shadow:0 0 6px var(--green);}
 
-            .contact-info a#email-icon:hover {
-                text-decoration: none;
-                color: #2980b9;
-            }
-
-            /* Mobile number as an Icon */
-            .contact-info a#phone-link {
-                display: none; /* Hide phone number text link on mobile */
-            }
-
-            .contact-info a#phone-icon {
-                display: inline-block;
-                font-size: 1.5em;
-                color: #3498db;
-                text-decoration: none;
-            }
-
-            .contact-info a#phone-icon:hover {
-                text-decoration: none;
-                color: #2980b9;
-            }
-        }
-
-        /* LinkedIn Badge Styles */
-        .linkedin-badge {
-            display: none; /* Initially hidden */
-            position: absolute;
-            top: 50px; /* Adjust the position as needed */
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-        }
-
-        .linkedin-badge.show {
-            display: block; /* Show badge when hovered */
-        }
-
-        /* Contact Info Styles */
-        .contact-info {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            font-size: 1.1em;
-        }
-
-        .contact-info a {
-            text-decoration: none;
-            color: #3498db;
-        }
-
-        .contact-info a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    /* No items placeholder */
+    .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;height:200px;color:var(--muted);font-size:0.62rem;letter-spacing:0.12em;text-align:center;}
+    .empty-icon{font-size:2.5rem;opacity:0.2;}
+  </style>
 </head>
 <body>
+<canvas id="snap"></canvas>
 
-<div class="main-container">
-    <!-- Resume Content Section -->
-    <div class="resume-container">
-        <header>
-            <h1 id="profile-heading">ANIKET <span style='color: black;'>PATIL</span></h1>
-
-            <!-- Contact Info Card -->
-            <div class="contact-card">
-                <div class="contact-info">
-                    <!-- Email (Visible on larger screens, icon on mobile) -->
-                    <span><a href="mailto:official.aniketpatil@gmail.com" id="email-link">official.aniketpatil@gmail.com</a></span>
-                    <span><a href="mailto:official.aniketpatil@gmail.com" id="email-icon"><i class="fas fa-envelope"></i></a></span>
-
-                    <!-- Phone Number (Visible on larger screens, icon on mobile) -->
-                    <span><a href="tel:+919145752925" id="phone-link">+91-9145752925</a></span>
-                    <span><a href="tel:+919145752925" id="phone-icon"><i class="fas fa-phone-alt"></i></a></span>
-
-                    <!-- LinkedIn Link (Visible on larger screens, icon on mobile) -->
-                    <span><a target="_blank" href="https://in.linkedin.com/in/aniket-patil32" id="linkedin-link">LinkedIn</a></span>
-                    <span><a href="https://in.linkedin.com/in/aniket-patil32" target="_blank" id="linkedin-icon"><i class="fab fa-linkedin"></i></a></span>
-                </div>
-            </div>
-
-            <!-- LinkedIn Badge -->
-            <div class="badge-base LI-profile-badge linkedin-badge" data-locale="en_US" data-size="large" data-theme="light" data-type="HORIZONTAL" data-vanity="aniket-patil32" data-version="v1">
-                <a class="badge-base__link LI-simple-link" href="https://in.linkedin.com/in/aniket-patil32?trk=profile-badge" target="_blank" aria-label="Aniket Patil LinkedIn Profile"></a>
-            </div>
-        </header>
-
-        <section class="section">
-            <h2>Skills</h2>
-            <div class="skills">
-                <div><strong>Languages:</strong> Java, JavaScript, SQL</div>
-                <div><strong>Skills:</strong> Data Structures & Algorithms, REST APIs, Object-Oriented Design, SOLID Principles, Agile</div>
-                <div><strong>Front End:</strong> JavaScript, Angular, React</div>
-                <div><strong>Backend:</strong> Java, Spring</div>
-                <div><strong>Database:</strong> PostgreSQL, MySQL, Sybase</div>
-                <div><strong>Other:</strong> Git, Maven, JUnit, Cucumber, Jenkins</div>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>Professional Experience</h2>
-            <div>
-                <h3>Senior Software Engineer | Morgan Stanley | Feb 2022 – Present</h3>
-                <ul>
-                    <li>Worked in the Fixed Income division handling FX Option trade lifecycle processing.</li>
-                    <li>Implemented unwind lifecycle support for FX Option trade to improve operations like settlements and reporting.</li>
-                    <li>Tuned trade blotters for faster trading activities.</li>
-                    <li>Developed a unified data access framework for seamless service setups.</li>
-                    <li>Remediated production bugs in collaboration with production support teams.</li>
-                </ul>
-            </div>
-
-            <div>
-                <h3>Software Engineer | EPAM Systems | Jul 2020 – Feb 2022</h3>
-                <ul>
-                    <li>Developed REST APIs for open banking handling over 10k transactions per second.</li>
-                    <li>Followed TDD approach and achieved maximum code coverage.</li>
-                    <li>Created a bank simulator and polling job for unsettled transaction statuses.</li>
-                    <li>Implemented feature toggles for runtime functionality control.</li>
-                </ul>
-            </div>
-
-            <div>
-                <h3>Junior Software Engineer | EPAM Systems | Jul 2019 – Jul 2020</h3>
-                <ul>
-                    <li>Developed a Spring-based console app for managerial performance reporting.</li>
-                    <li>Conducted performance testing using Gatling, achieving 5k transactions per second.</li>
-                </ul>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>Education</h2>
-            <ul class="education">
-                <li>
-                    <strong>Government College of Engineering, Karad</strong> | Jul 2014 - May 2018
-                    <br>Bachelor of Information Technology | First Class with Distinction
-                    <br>Key Courses: OOP in Java, Computer Networks, Algorithms, Operating Systems
-                </li>
-            </ul>
-        </section>
-
-        <section class="section">
-            <h2>Personal Projects</h2>
-            <ul class="projects">
-                <li>
-                    <strong>Real-Time Attendance System:</strong>
-                    Designed and developed a solution using OpenCV for face recognition and attendance reporting.
-                </li>
-            </ul>
-        </section>
-
-        <section class="section">
-            <h2>Achievements</h2>
-            <ul class="achievements">
-                <li>Received "Pat on the Back" award at EPAM for automating performance reporting.</li>
-                <li>Recognized as part of the best team for developing open banking APIs.</li>
-            </ul>
-        </section>
+<!-- ══ JOIN SCREEN ══ -->
+<div id="joinScreen">
+  <div class="join-logo">GEO<span>LOG</span></div>
+  <div class="join-sub">P2P · Multi-User · Field Logger</div>
+  <div class="join-card">
+    <div>
+      <div class="join-label">Your Name</div>
+      <input class="join-input" id="joinName" placeholder="e.g. Ravi" maxlength="20"/>
     </div>
-
+    <div>
+      <div class="join-label">Room Code</div>
+      <div class="room-row">
+        <input class="room-input" id="roomCode" placeholder="ROOM" maxlength="8" style="text-transform:uppercase"/>
+        <button class="gen-btn" onclick="genRoom()">NEW ROOM</button>
+      </div>
+    </div>
+    <div class="join-err" id="joinErr">⚠ Please enter your name and room code</div>
+    <button class="join-btn" onclick="joinRoom()">▶ JOIN ROOM</button>
+    <div class="join-note">
+      Share the room code with others.<br/>
+      Everyone must be online to connect.
+    </div>
+  </div>
 </div>
 
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">GEO<span>LOG</span></div>
+  <div class="topbar-center">
+    <div class="room-badge" id="topRoom">------</div>
+    <div class="peer-count">PEERS: <span id="peerCountEl">0</span></div>
+  </div>
+  <div class="conn-dot" id="connDot"></div>
+</div>
+
+<!-- ══ CAPTURE PAGE ══ -->
+<div class="page active" id="page-capture">
+  <div class="gps-bar">
+    <div class="gps-dot" id="gpsDot"></div>
+    <div class="gps-coords" id="gpsCoords">Acquiring GPS…</div>
+    <div class="gps-acc" id="gpsAcc" style="font-size:0.52rem;color:var(--muted)"></div>
+  </div>
+  <div class="viewfinder-wrap">
+    <video id="camVideo" autoplay playsinline muted></video>
+    <div class="vf-overlay">
+      <div class="vf-tr"></div><div class="vf-bl"></div>
+      <div class="vf-gps">
+        <div><div class="vf-lbl">LAT</div><div class="vf-val" id="vfLat">---</div></div>
+        <div><div class="vf-lbl">LON</div><div class="vf-val" id="vfLon">---</div></div>
+        <div><div class="vf-lbl">ALT</div><div class="vf-val" id="vfAlt">---</div></div>
+      </div>
+    </div>
+    <div class="flash" id="flashEl"></div>
+    <div class="cam-init" id="camInit">
+      <div style="font-size:2.5rem;opacity:0.3">📷</div>
+      <p>CAMERA NOT ACTIVE</p>
+      <button class="cam-init-btn" onclick="startCamera()">ENABLE CAMERA</button>
+    </div>
+  </div>
+  <div class="capture-bar">
+    <div class="cap-meta">
+      <div>SHARED: <span class="v" id="captureCount">0</span></div>
+      <div>PEERS: <span class="v" id="capPeers">0</span></div>
+    </div>
+    <button class="capture-btn" id="captureBtn" onclick="captureAndShare()">
+      <span class="cap-icon">⊙</span>
+    </button>
+    <button class="switch-btn" onclick="switchCamera()">⟳</button>
+  </div>
+
+  <!-- Motion alert settings on capture page -->
+  <div class="alert-settings">
+    <div class="alert-toggle-row">
+      <div>
+        <div class="atl">MOTION ALERT</div>
+        <div class="ats">Broadcast to all peers on impact</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="alertToggle" onchange="onAlertToggle()"/>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="alert-toggle-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+      <div class="atl">WHATSAPP ALERT NUMBER</div>
+      <input type="tel" class="join-input" id="waNum" placeholder="919876543210 (country code + number)" style="font-size:0.7rem;padding:7px 10px;" onchange="saveLocal()"/>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MEMBERS PAGE ══ -->
+<div class="page" id="page-members">
+  <div class="members-header">
+    <div>
+      <div class="section-title">LIVE MEMBERS</div>
+      <div style="font-size:0.55rem;color:var(--muted)" id="membersSubtitle">0 online</div>
+    </div>
+    <div style="font-size:0.55rem;color:var(--muted)">AUTO-UPDATES</div>
+  </div>
+  <div class="alert-banner" id="alertBanner">
+    <div class="alert-banner-icon">⚠️</div>
+    <div id="alertBannerText">Impact detected</div>
+  </div>
+  <div class="members-list" id="membersList"></div>
+</div>
+
+<!-- ══ FEED PAGE ══ -->
+<div class="page" id="page-feed">
+  <div class="feed-header">
+    <div>
+      <div class="section-title">GROUP FEED</div>
+      <div style="font-size:0.55rem;color:var(--muted)" id="feedSubtitle">Photos · Alerts · Chat</div>
+    </div>
+  </div>
+  <div class="feed-list" id="feedList">
+    <div class="empty-state">
+      <div class="empty-icon">📡</div>
+      <div>WAITING FOR GROUP ACTIVITY</div>
+      <div style="font-size:0.52rem;margin-top:4px">Capture a photo or send a chat message</div>
+    </div>
+  </div>
+  <div class="chat-bar">
+    <input class="chat-input" id="chatInput" placeholder="Type a message…" maxlength="300" onkeydown="if(event.key==='Enter')sendChat()"/>
+    <button class="send-btn" onclick="sendChat()">➤</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-tab active" id="tab-capture" onclick="switchTab('capture')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="4"/><path d="M5 7h2l2-2h6l2 2h2a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2z"/></svg>
+    Capture
+  </div>
+  <div class="nav-tab" id="tab-members" onclick="switchTab('members')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75M21 21v-2a4 4 0 00-3-3.87"/></svg>
+    Members
+    <div class="nav-badge" id="badge-members">0</div>
+  </div>
+  <div class="nav-tab" id="tab-feed" onclick="switchTab('feed')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Feed
+    <div class="nav-badge" id="badge-feed">0</div>
+  </div>
+</div>
+
+<!-- PHOTO MODAL -->
+<div class="modal" id="photoModal">
+  <button class="modal-close" onclick="closeModal()">✕</button>
+  <img class="modal-img" id="modalImg" src="" alt="Photo"/>
+  <div class="modal-info" id="modalInfo"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
 <script>
-    const linkedinLink = document.getElementById('linkedin-link');
-    const linkedinBadge = document.querySelector('.linkedin-badge');
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 
-    // Show the LinkedIn badge when the LinkedIn link is clicked
-    // linkedinLink.addEventListener('click', (event) => {
-    //     event.stopPropagation(); // Prevent event from bubbling up
-    //     linkedinBadge.classList.add('show');
-    // });
+// ─── STATE ───
+let myName='', myRoom='', myPeerId='';
+let peer=null;
+let connections={};        // peerId -> DataConnection
+let memberMap={};          // peerId -> {name,gps,lastSeen,emoji}
+let feedItems=[];          // all feed items
+let feedUnread=0, memberUnread=0;
+let gpsData=null, camStream=null, facingMode='environment';
+let alertEnabled=false, lastAlertTime=0;
+let AVATARS=['🧑','👨','👩','🧔','👱','🧒','👴','👵','🧑‍💻','🧑‍🔧'];
 
-    // // Close the LinkedIn badge if the user clicks outside the badge or the LinkedIn link
-    // document.addEventListener('click', (event) => {
-    //     if (!linkedinBadge.contains(event.target) && event.target !== linkedinLink) {
-    //         linkedinBadge.classList.remove('show');
-    //     }
-    // });
+// ─── LOCAL STORAGE ───
+function saveLocal(){
+  localStorage.setItem('geolog-wa', document.getElementById('waNum').value);
+  localStorage.setItem('geolog-name', myName);
+}
+function loadLocal(){
+  const wa=localStorage.getItem('geolog-wa');
+  if(wa) document.getElementById('waNum').value=wa;
+  const n=localStorage.getItem('geolog-name');
+  if(n) document.getElementById('joinName').value=n;
+}
+loadLocal();
 
-    // // Prevent closing the badge when clicking inside the badge
-    // linkedinBadge.addEventListener('click', (event) => {
-    //     event.stopPropagation(); // Prevent event from bubbling up
-    // });
+// ─── CLOCK ───
+setInterval(()=>{
+  const t=new Date().toTimeString().slice(0,8);
+}, 1000);
+
+// ─── UTILS ───
+function genRoom(){
+  const code=Math.random().toString(36).substring(2,8).toUpperCase();
+  document.getElementById('roomCode').value=code;
+}
+function showToast(msg,dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+function timeStr(ts){ return new Date(ts).toTimeString().slice(0,5); }
+function myEmoji(){ return AVATARS[Math.abs(myName.split('').reduce((a,c)=>a+c.charCodeAt(0),0))%AVATARS.length]; }
+function nameEmoji(name){ return AVATARS[Math.abs(name.split('').reduce((a,c)=>a+c.charCodeAt(0),0))%AVATARS.length]; }
+
+// ─── JOIN ROOM ───
+async function joinRoom(){
+  const name=document.getElementById('joinName').value.trim();
+  const room=document.getElementById('roomCode').value.trim().toUpperCase();
+  if(!name||!room){ document.getElementById('joinErr').style.display='block'; return; }
+  myName=name; myRoom=room;
+  saveLocal();
+  document.getElementById('joinErr').style.display='none';
+  document.getElementById('joinScreen').style.display='none';
+  document.getElementById('topRoom').textContent=room;
+
+  // Add self to memberMap
+  memberMap[myPeerId||'self']={name:myName, gps:null, lastSeen:Date.now(), emoji:myEmoji(), isSelf:true};
+
+  initPeer();
+  startGPS();
+  await startCamera();
+  await requestMotion();
+  renderMembers();
+}
+
+// ─── PEERJS ───
+function initPeer(){
+  // PeerID = room+username+random to avoid collision
+  const uid = myRoom+'_'+myName.replace(/\s/g,'')+'_'+Math.random().toString(36).slice(2,6);
+  peer = new Peer(uid, { debug:0 });
+
+  peer.on('open', id=>{
+    myPeerId=id;
+    document.getElementById('connDot').className='conn-dot ok';
+    showToast('✅ Connected to network');
+
+    // Announce to room by connecting to "well-known" room host IDs
+    // Strategy: try connecting to others who may be in the room
+    // We broadcast our presence via the room-specific peer ID
+    announcePresence();
+  });
+
+  peer.on('connection', conn=>{ setupConn(conn, false); });
+  peer.on('error', e=>{
+    console.warn('Peer error:', e.type);
+    if(e.type==='unavailable-id') { showToast('⚠ Name taken in room, try another'); }
+    document.getElementById('connDot').className='conn-dot';
+  });
+  peer.on('disconnected', ()=>{ document.getElementById('connDot').className='conn-dot'; peer.reconnect(); });
+}
+
+function announcePresence(){
+  // The "host" peer ID for a room is deterministic: room name itself
+  // Everyone tries to connect to room host peer. First one becomes host.
+  const hostId = 'GEOLOG_'+myRoom;
+  if(myPeerId === hostId) return; // we ARE the host
+
+  const conn = peer.connect(hostId, {reliable:true});
+  setupConn(conn, true);
+}
+
+function setupConn(conn, outgoing){
+  conn.on('open', ()=>{
+    connections[conn.peer]=conn;
+    updatePeerCount();
+
+    // Send hello
+    send(conn, {type:'hello', name:myName, gps:gpsData ? {
+      latitude:gpsData.latitude, longitude:gpsData.longitude,
+      altitude:gpsData.altitude, accuracy:gpsData.accuracy
+    }:null });
+
+    // Update member
+    if(!memberMap[conn.peer]){
+      memberMap[conn.peer]={name:'Unknown',gps:null,lastSeen:Date.now(),emoji:'👤'};
+      renderMembers();
+    }
+  });
+
+  conn.on('data', data=>{ handleMessage(conn.peer, data); });
+
+  conn.on('close', ()=>{
+    delete connections[conn.peer];
+    const name = memberMap[conn.peer]?.name || 'A member';
+    delete memberMap[conn.peer];
+    updatePeerCount();
+    renderMembers();
+    showToast(`👋 ${name} left`);
+    addFeedItem({type:'sys', text:`${name} disconnected`, ts:Date.now()});
+  });
+
+  conn.on('error', e=>{ console.warn('Conn error', e); });
+}
+
+function send(conn, data){
+  try{ if(conn.open) conn.send(data); }catch(e){}
+}
+
+function broadcast(data, excludePeer=null){
+  Object.entries(connections).forEach(([pid,conn])=>{
+    if(pid!==excludePeer) send(conn, data);
+  });
+}
+
+function handleMessage(fromPeer, msg){
+  switch(msg.type){
+    case 'hello':
+      if(!memberMap[fromPeer]){
+        memberMap[fromPeer]={name:msg.name||'Unknown', gps:msg.gps, lastSeen:Date.now(), emoji:nameEmoji(msg.name||'?')};
+        showToast(`👋 ${msg.name} joined`);
+        addFeedItem({type:'sys',text:`${msg.name} joined the room`,ts:Date.now()});
+        // Connect back if we haven't
+        if(!connections[fromPeer]||!connections[fromPeer].open){
+          const c=peer.connect(fromPeer,{reliable:true});
+          setupConn(c, true);
+        }
+        // Share peer list so new user can connect to others
+        send(connections[fromPeer], {type:'peerlist', peers: Object.keys(connections)});
+      } else {
+        memberMap[fromPeer].name=msg.name;
+        memberMap[fromPeer].gps=msg.gps;
+        memberMap[fromPeer].lastSeen=Date.now();
+      }
+      renderMembers();
+      break;
+
+    case 'peerlist':
+      // Connect to any peers we don't know yet
+      (msg.peers||[]).forEach(pid=>{
+        if(pid!==myPeerId && !connections[pid]){
+          const c=peer.connect(pid,{reliable:true});
+          setupConn(c,true);
+        }
+      });
+      break;
+
+    case 'location':
+      if(memberMap[fromPeer]){
+        memberMap[fromPeer].gps=msg.gps;
+        memberMap[fromPeer].lastSeen=Date.now();
+        renderMembers();
+      }
+      break;
+
+    case 'record':
+      addFeedItem({
+        type:'record', from:msg.name, peerId:fromPeer,
+        photo:msg.photo, gps:msg.gps, ts:msg.ts, note:msg.note||''
+      });
+      if(currentTab!=='feed'){ feedUnread++; updateBadges(); }
+      showToast(`📸 ${msg.name} shared a photo`);
+      break;
+
+    case 'chat':
+      addFeedItem({type:'chat', from:msg.name, text:msg.text, ts:msg.ts, mine:false});
+      if(currentTab!=='feed'){ feedUnread++; updateBadges(); }
+      break;
+
+    case 'alert':
+      const alertMsg={type:'alert', from:msg.name, magnitude:msg.magnitude, gps:msg.gps, ts:msg.ts};
+      addFeedItem(alertMsg);
+      showAlertBanner(msg.name, msg.magnitude, msg.gps);
+      if(currentTab!=='feed'){ feedUnread++; updateBadges(); }
+      // Also WhatsApp if configured
+      const wa=document.getElementById('waNum').value.replace(/\D/g,'');
+      if(wa) triggerWhatsApp(msg.name, msg.magnitude, msg.gps);
+      break;
+
+    case 'sys':
+      addFeedItem({type:'sys', text:msg.text, ts:msg.ts});
+      break;
+  }
+}
+
+function updatePeerCount(){
+  const n=Object.keys(connections).length;
+  document.getElementById('peerCountEl').textContent=n;
+  document.getElementById('capPeers').textContent=n;
+  const dot=document.getElementById('connDot');
+  dot.className='conn-dot'+(n>0?' ok':' partial');
+  updateBadges();
+}
+
+// ─── GPS ───
+function startGPS(){
+  if(!navigator.geolocation) return;
+  document.getElementById('gpsDot').classList.add('searching');
+  navigator.geolocation.watchPosition(pos=>{
+    gpsData=pos.coords;
+    const lat=gpsData.latitude.toFixed(6), lon=gpsData.longitude.toFixed(6);
+    document.getElementById('gpsDot').className='gps-dot locked';
+    document.getElementById('gpsCoords').textContent=`${lat}, ${lon}`;
+    document.getElementById('gpsAcc').textContent=`±${gpsData.accuracy.toFixed(0)}m`;
+    document.getElementById('vfLat').textContent=lat;
+    document.getElementById('vfLon').textContent=lon;
+    document.getElementById('vfAlt').textContent=gpsData.altitude!=null?gpsData.altitude.toFixed(1)+'m':'N/A';
+    // Update self in memberMap
+    const selfKey=Object.keys(memberMap).find(k=>memberMap[k].isSelf);
+    if(selfKey) memberMap[selfKey].gps={latitude:gpsData.latitude,longitude:gpsData.longitude,altitude:gpsData.altitude,accuracy:gpsData.accuracy};
+    // Broadcast location to peers every GPS update
+    broadcast({type:'location', gps:{latitude:gpsData.latitude,longitude:gpsData.longitude,altitude:gpsData.altitude,accuracy:gpsData.accuracy}});
+  },()=>{
+    document.getElementById('gpsDot').className='gps-dot';
+  },{enableHighAccuracy:true,maximumAge:3000,timeout:15000});
+}
+
+// ─── CAMERA ───
+async function startCamera(){
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+  try{
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode,width:{ideal:1280},height:{ideal:720}},audio:false});
+    document.getElementById('camVideo').srcObject=camStream;
+    document.getElementById('camInit').style.display='none';
+  }catch(e){console.warn('Cam:',e);}
+}
+async function switchCamera(){facingMode=facingMode==='environment'?'user':'environment';await startCamera();}
+
+// ─── CAPTURE & SHARE ───
+async function captureAndShare(){
+  const vid=document.getElementById('camVideo');
+  if(!vid.srcObject){showToast('⚠ Camera not active');return;}
+
+  const f=document.getElementById('flashEl');
+  f.classList.add('go'); setTimeout(()=>f.classList.remove('go'),150);
+
+  const canvas=document.getElementById('snap');
+  canvas.width=vid.videoWidth||1280; canvas.height=vid.videoHeight||720;
+  const ctx=canvas.getContext('2d');
+  ctx.drawImage(vid,0,0);
+
+  // GPS stamp on photo
+  if(gpsData){
+    const w=canvas.width,h=canvas.height,fs=Math.max(11,w*0.016);
+    const lines=[`${myName} · ${new Date().toTimeString().slice(0,8)}`,`LAT ${gpsData.latitude.toFixed(6)}°`,`LON ${gpsData.longitude.toFixed(6)}°`,`±${gpsData.accuracy.toFixed(0)}m`];
+    ctx.font=`${fs}px monospace`;
+    ctx.fillStyle='rgba(0,0,0,0.6)';
+    ctx.fillRect(0,h-(lines.length*(fs+3)+10),w*0.55,lines.length*(fs+3)+10);
+    ctx.fillStyle='#00b4ff';
+    lines.forEach((l,i)=>ctx.fillText(l,8,h-(lines.length-i)*(fs+3)+fs-2));
+  }
+
+  // Compress for P2P transfer
+  const photo=canvas.toDataURL('image/jpeg',0.6);
+  const gps=gpsData?{latitude:gpsData.latitude,longitude:gpsData.longitude,altitude:gpsData.altitude,accuracy:gpsData.accuracy}:null;
+  const ts=Date.now();
+
+  // Add to own feed
+  addFeedItem({type:'record',from:myName,photo,gps,ts,note:'',mine:true});
+  document.getElementById('captureCount').textContent = feedItems.filter(f=>f.type==='record').length;
+
+  // Broadcast to peers
+  broadcast({type:'record',name:myName,photo,gps,ts,note:''});
+
+  const btn=document.getElementById('captureBtn');
+  btn.classList.add('ok'); setTimeout(()=>btn.classList.remove('ok'),600);
+  if(currentTab!=='feed'){ feedUnread++; updateBadges(); }
+  showToast('📸 Photo shared with group');
+}
+
+// ─── CHAT ───
+function sendChat(){
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();
+  if(!text) return;
+  input.value='';
+  const ts=Date.now();
+  addFeedItem({type:'chat',from:myName,text,ts,mine:true});
+  broadcast({type:'chat',name:myName,text,ts});
+}
+
+// ─── MOTION ───
+async function requestMotion(){
+  try{
+    if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
+      const r=await DeviceMotionEvent.requestPermission();
+      if(r!=='granted') return;
+    }
+    window.addEventListener('devicemotion',onMotion);
+  }catch(e){}
+}
+function onAlertToggle(){
+  alertEnabled=document.getElementById('alertToggle').checked;
+}
+function onMotion(e){
+  if(!alertEnabled) return;
+  const a=e.accelerationIncludingGravity||{};
+  const mag=Math.sqrt((a.x||0)**2+(a.y||0)**2+(a.z||0)**2);
+  const threshold=25;
+  const now=Date.now();
+  if(mag>=threshold&&(now-lastAlertTime)>20000){
+    lastAlertTime=now;
+    const gps=gpsData?{latitude:gpsData.latitude,longitude:gpsData.longitude,altitude:gpsData.altitude,accuracy:gpsData.accuracy}:null;
+    const ts=Date.now();
+    // Add to own feed
+    addFeedItem({type:'alert',from:myName+' (you)',magnitude:mag.toFixed(1),gps,ts});
+    // Broadcast
+    broadcast({type:'alert',name:myName,magnitude:mag.toFixed(1),gps,ts});
+    showAlertBanner('You',mag.toFixed(1),gps);
+    // WhatsApp
+    const wa=document.getElementById('waNum').value.replace(/\D/g,'');
+    if(wa) triggerWhatsApp(myName,mag.toFixed(1),gps);
+    if(currentTab!=='feed'){feedUnread++;updateBadges();}
+  }
+}
+
+function showAlertBanner(name,mag,gps){
+  const b=document.getElementById('alertBanner');
+  document.getElementById('alertBannerText').textContent=
+    `⚠ ${name}: Impact ${mag} m/s²${gps?` · ${gps.latitude.toFixed(4)}, ${gps.longitude.toFixed(4)}`:''}`;
+  b.classList.add('show');
+  setTimeout(()=>b.classList.remove('show'),5000);
+}
+
+function triggerWhatsApp(name,mag,gps){
+  const num=document.getElementById('waNum').value.replace(/\D/g,'');
+  if(!num) return;
+  const gpsText=gps?`📍 ${gps.latitude.toFixed(6)}, ${gps.longitude.toFixed(6)}\n🗺 https://maps.apple.com/?ll=${gps.latitude},${gps.longitude}`:'📍 No GPS';
+  const msg=encodeURIComponent(`🚨 GeoLog GROUP ALERT\n👤 ${name} detected major movement!\n💥 Magnitude: ${mag} m/s²\n🕐 ${new Date().toLocaleString()}\n${gpsText}`);
+  setTimeout(()=>window.open(`https://wa.me/${num}?text=${msg}`,'_blank'),800);
+}
+
+// ─── FEED ───
+function addFeedItem(item){
+  feedItems.unshift(item);
+  if(feedItems.length>100) feedItems.pop();
+  renderFeed();
+}
+
+function renderFeed(){
+  const list=document.getElementById('feedList');
+  if(!feedItems.length){
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">📡</div><div>WAITING FOR GROUP ACTIVITY</div><div style="font-size:0.52rem;margin-top:4px">Capture a photo or send a chat message</div></div>`;
+    return;
+  }
+  list.innerHTML=feedItems.map((item,idx)=>{
+    if(item.type==='record') return renderFeedRecord(item,idx);
+    if(item.type==='chat')   return renderChatBubble(item);
+    if(item.type==='alert')  return renderFeedAlert(item);
+    if(item.type==='sys')    return `<div style="text-align:center;font-size:0.52rem;color:var(--muted);padding:4px 0">${item.text}</div>`;
+    return '';
+  }).join('');
+  document.getElementById('feedSubtitle').textContent=`${feedItems.filter(f=>f.type==='record').length} photos · ${feedItems.filter(f=>f.type==='chat').length} messages`;
+}
+
+function renderFeedRecord(item,idx){
+  const em=nameEmoji(item.from);
+  const mine=item.mine;
+  const g=item.gps;
+  return `<div class="feed-item"><div class="feed-record">
+    <div class="feed-record-header">
+      <div class="feed-avatar" style="background:${mine?'var(--green-dim)':'var(--blue-dim)'}">${em}</div>
+      <div><div class="feed-author">${item.from}${mine?'&nbsp;<span class="you-tag">YOU</span>':''}</div><div class="feed-meta">${timeStr(item.ts)}</div></div>
+    </div>
+    <img class="feed-photo" src="${item.photo}" onclick="openModal(${idx})" loading="lazy"/>
+    ${g?`<div class="feed-details">
+      <div class="feed-detail-item"><div class="fd-lbl">LAT</div><div class="fd-val">${g.latitude.toFixed(5)}°</div></div>
+      <div class="feed-detail-item"><div class="fd-lbl">LON</div><div class="fd-val">${g.longitude.toFixed(5)}°</div></div>
+      ${g.altitude!=null?`<div class="feed-detail-item"><div class="fd-lbl">ALT</div><div class="fd-val">${g.altitude.toFixed(1)}m</div></div>`:''}
+      <div class="feed-detail-item"><div class="fd-lbl">ACC</div><div class="fd-val">±${g.accuracy.toFixed(0)}m</div></div>
+    </div>`:''}
+    <div class="feed-actions">
+      ${g?`<button class="feed-action" onclick="openMaps(${idx})">📍 MAP</button>`:''}
+      <button class="feed-action" onclick="openModal(${idx})">🔍 VIEW</button>
+    </div>
+  </div></div>`;
+}
+
+function renderChatBubble(item){
+  const mine=item.mine;
+  const em=nameEmoji(item.from);
+  return `<div class="feed-item"><div class="chat-bubble${mine?' mine':''}">
+    <div class="bubble-avatar" style="background:${mine?'var(--green-dim)':'var(--blue-dim)'}">${em}</div>
+    <div class="bubble-body">
+      <div class="bubble-name">${item.from}</div>
+      <div class="bubble-text">${escHtml(item.text)}</div>
+      <div class="bubble-time">${timeStr(item.ts)}</div>
+    </div>
+  </div></div>`;
+}
+
+function renderFeedAlert(item){
+  const g=item.gps;
+  return `<div class="feed-item"><div class="feed-alert">
+    <div class="feed-alert-icon">⚠️</div>
+    <div class="feed-alert-body">
+      <div class="feed-alert-who">MOTION ALERT — ${item.from}</div>
+      <div class="feed-alert-detail">
+        Impact: <span>${item.magnitude} m/s²</span> · ${timeStr(item.ts)}<br/>
+        ${g?`Location: <span>${g.latitude.toFixed(5)}, ${g.longitude.toFixed(5)}</span>`:'No GPS'}
+      </div>
+    </div>
+    ${g?`<button class="map-btn-sm" onclick="window.open('https://maps.apple.com/?ll=${g.latitude},${g.longitude}','_blank')">MAP</button>`:''}
+  </div></div>`;
+}
+
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ─── MEMBERS ───
+function renderMembers(){
+  const list=document.getElementById('membersList');
+  const all=Object.entries(memberMap);
+  document.getElementById('membersSubtitle').textContent=`${all.length} online`;
+  if(!all.length){
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div>NO MEMBERS YET</div></div>`;
+    return;
+  }
+  list.innerHTML=all.map(([pid,m])=>{
+    const isSelf=m.isSelf;
+    const g=m.gps;
+    const ago=m.lastSeen?Math.round((Date.now()-m.lastSeen)/1000):null;
+    const fresh=ago!=null&&ago<30;
+    return `<div class="member-card">
+      <div class="member-avatar" style="background:${isSelf?'var(--green-dim)':'var(--blue-dim)'}">${m.emoji}</div>
+      <div class="member-info">
+        <div class="member-name${isSelf?' you':''}">${m.name}${isSelf?' (you)':''}</div>
+        ${g?`<div class="member-coords">LAT <span>${g.latitude.toFixed(4)}°</span> LON <span>${g.longitude.toFixed(4)}°</span></div>`:'<div class="member-coords">No GPS data</div>'}
+        ${ago!=null?`<div class="member-time">Updated ${ago<5?'just now':ago+'s ago'}</div>`:''}
+      </div>
+      <div class="member-status">
+        <span class="status-pill ${isSelf?'pill-green':fresh?'pill-green':'pill-amber'}">${isSelf?'YOU':fresh?'LIVE':'IDLE'}</span>
+        ${g&&!isSelf?`<button class="map-btn-sm" onclick="window.open('https://maps.apple.com/?ll=${g.latitude},${g.longitude}&q=${m.name}','_blank')">📍 MAP</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── MODAL ───
+function openModal(idx){
+  const item=feedItems[idx];
+  if(!item||item.type!=='record') return;
+  document.getElementById('modalImg').src=item.photo;
+  const g=item.gps;
+  const rows=[
+    ['From',item.from],
+    ['Time',new Date(item.ts).toLocaleString()],
+    g?['Latitude',g.latitude.toFixed(7)+'°']:null,
+    g?['Longitude',g.longitude.toFixed(7)+'°']:null,
+    g&&g.altitude!=null?['Altitude',g.altitude.toFixed(2)+' m']:null,
+    g?['Accuracy','±'+g.accuracy.toFixed(1)+' m']:null,
+  ].filter(Boolean);
+  document.getElementById('modalInfo').innerHTML=rows.map(([l,v])=>`<div class="modal-row"><div class="modal-lbl">${l.toUpperCase()}</div><div class="modal-val">${v}</div></div>`).join('');
+  document.getElementById('photoModal').classList.add('open');
+}
+function openMaps(idx){
+  const item=feedItems[idx];
+  if(item?.gps) window.open(`https://maps.apple.com/?ll=${item.gps.latitude},${item.gps.longitude}&q=${item.from}`,'_blank');
+}
+function closeModal(){ document.getElementById('photoModal').classList.remove('open'); }
+
+// ─── TABS ───
+let currentTab='capture';
+function switchTab(tab){
+  currentTab=tab;
+  ['capture','members','feed'].forEach(t=>{
+    document.getElementById('page-'+t).classList.toggle('active',t===tab);
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+  });
+  if(tab==='feed'){ feedUnread=0; updateBadges(); }
+  if(tab==='members'){ memberUnread=0; updateBadges(); }
+}
+function updateBadges(){
+  const fb=document.getElementById('badge-feed');
+  const mb=document.getElementById('badge-members');
+  const pc=Object.keys(connections).length;
+  if(feedUnread>0){fb.style.display='flex';fb.textContent=feedUnread;}else fb.style.display='none';
+  if(pc>0){mb.style.display='flex';mb.textContent=pc;}else mb.style.display='none';
+  document.getElementById('captureCount').textContent=feedItems.filter(f=>f.type==='record').length;
+}
+
+// Render members on interval to update "ago" time
+setInterval(renderMembers, 5000);
 </script>
-
 </body>
 </html>

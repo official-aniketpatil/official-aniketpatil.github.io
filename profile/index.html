@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aniket Patil - Resume</title>
+    <script src="https://platform.linkedin.com/badges/js/profile.js" async defer></script> <!-- LinkedIn Badge Script -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> <!-- FontAwesome for Icons -->
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: center; /* Center content horizontally */
+            align-items: flex-start; /* Align content at the top of the viewport */
+            min-height: 100%; /* Ensure the body stretches to fill the height of the viewport */
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 1000px; /* Max width of the resume */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Resume Section */
+        .resume-container {
+            margin: 0 auto; /* Center the resume container */
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            width: 100%; /* Ensures it fills available space */
+        }
+
+        header h1 {
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 2.5em;
+            font-weight: 700;
+            cursor: pointer; /* Add cursor pointer to indicate it's clickable */
+            text-align: center;
+        }
+
+        h2, h3 {
+            color: #4A4A4A;
+            font-weight: 600;
+        }
+
+        h2 {
+            font-size: 1.75em;
+            margin-top: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+
+        h3 {
+            font-size: 1.4em;
+            margin-top: 15px;
+        }
+
+        .skills, .achievements {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .skills div, .achievements li {
+            margin-bottom: 10px;
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .resume-container {
+                width: 100%;
+                padding: 15px;
+            }
+
+            header h1 {
+                font-size: 2.2em;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            h3 {
+                font-size: 1.2em;
+            }
+
+            .skills div, .achievements li {
+                font-size: 1.1em;
+            }
+
+            /* LinkedIn Link as an Icon in Mobile */
+            .contact-info a#linkedin-link {
+                display: none; /* Hide text link on mobile */
+            }
+
+            .contact-info a#linkedin-icon {
+                display: inline-block;
+                font-size: 1.5em;
+                color: #3498db;
+                text-decoration: none;
+            }
+
+            .contact-info a#linkedin-icon:hover {
+                text-decoration: none;
+                color: #2980b9;
+            }
+
+            /* Email as an Icon */
+            .contact-info a#email-link {
+                display: none; /* Hide email text link on mobile */
+            }
+
+            .contact-info a#email-icon {
+                display: inline-block;
+                font-size: 1.5em;
+                color: #3498db;
+                text-decoration: none;
+            }
+
+            .contact-info a#email-icon:hover {
+                text-decoration: none;
+                color: #2980b9;
+            }
+
+            /* Mobile number as an Icon */
+            .contact-info a#phone-link {
+                display: none; /* Hide phone number text link on mobile */
+            }
+
+            .contact-info a#phone-icon {
+                display: inline-block;
+                font-size: 1.5em;
+                color: #3498db;
+                text-decoration: none;
+            }
+
+            .contact-info a#phone-icon:hover {
+                text-decoration: none;
+                color: #2980b9;
+            }
+        }
+
+        /* LinkedIn Badge Styles */
+        .linkedin-badge {
+            display: none; /* Initially hidden */
+            position: absolute;
+            top: 50px; /* Adjust the position as needed */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .linkedin-badge.show {
+            display: block; /* Show badge when hovered */
+        }
+
+        /* Contact Info Styles */
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1.1em;
+        }
+
+        .contact-info a {
+            text-decoration: none;
+            color: #3498db;
+        }
+
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <!-- Resume Content Section -->
+    <div class="resume-container">
+        <header>
+            <h1 id="profile-heading">ANIKET <span style='color: black;'>PATIL</span></h1>
+
+            <!-- Contact Info Card -->
+            <div class="contact-card">
+                <div class="contact-info">
+                    <!-- Email (Visible on larger screens, icon on mobile) -->
+                    <span><a href="mailto:official.aniketpatil@gmail.com" id="email-link">official.aniketpatil@gmail.com</a></span>
+                    <span><a href="mailto:official.aniketpatil@gmail.com" id="email-icon"><i class="fas fa-envelope"></i></a></span>
+
+                    <!-- Phone Number (Visible on larger screens, icon on mobile) -->
+                    <span><a href="tel:+919145752925" id="phone-link">+91-9145752925</a></span>
+                    <span><a href="tel:+919145752925" id="phone-icon"><i class="fas fa-phone-alt"></i></a></span>
+
+                    <!-- LinkedIn Link (Visible on larger screens, icon on mobile) -->
+                    <span><a target="_blank" href="https://in.linkedin.com/in/aniket-patil32" id="linkedin-link">LinkedIn</a></span>
+                    <span><a href="https://in.linkedin.com/in/aniket-patil32" target="_blank" id="linkedin-icon"><i class="fab fa-linkedin"></i></a></span>
+                </div>
+            </div>
+
+            <!-- LinkedIn Badge -->
+            <div class="badge-base LI-profile-badge linkedin-badge" data-locale="en_US" data-size="large" data-theme="light" data-type="HORIZONTAL" data-vanity="aniket-patil32" data-version="v1">
+                <a class="badge-base__link LI-simple-link" href="https://in.linkedin.com/in/aniket-patil32?trk=profile-badge" target="_blank" aria-label="Aniket Patil LinkedIn Profile"></a>
+            </div>
+        </header>
+
+        <section class="section">
+            <h2>Skills</h2>
+            <div class="skills">
+                <div><strong>Languages:</strong> Java, JavaScript, SQL</div>
+                <div><strong>Skills:</strong> Data Structures & Algorithms, REST APIs, Object-Oriented Design, SOLID Principles, Agile</div>
+                <div><strong>Front End:</strong> JavaScript, Angular, React</div>
+                <div><strong>Backend:</strong> Java, Spring</div>
+                <div><strong>Database:</strong> PostgreSQL, MySQL, Sybase</div>
+                <div><strong>Other:</strong> Git, Maven, JUnit, Cucumber, Jenkins</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Professional Experience</h2>
+            <div>
+                <h3>Senior Software Engineer | Morgan Stanley | Feb 2022 – Present</h3>
+                <ul>
+                    <li>Worked in the Fixed Income division handling FX Option trade lifecycle processing.</li>
+                    <li>Implemented unwind lifecycle support for FX Option trade to improve operations like settlements and reporting.</li>
+                    <li>Tuned trade blotters for faster trading activities.</li>
+                    <li>Developed a unified data access framework for seamless service setups.</li>
+                    <li>Remediated production bugs in collaboration with production support teams.</li>
+                </ul>
+            </div>
+
+            <div>
+                <h3>Software Engineer | EPAM Systems | Jul 2020 – Feb 2022</h3>
+                <ul>
+                    <li>Developed REST APIs for open banking handling over 10k transactions per second.</li>
+                    <li>Followed TDD approach and achieved maximum code coverage.</li>
+                    <li>Created a bank simulator and polling job for unsettled transaction statuses.</li>
+                    <li>Implemented feature toggles for runtime functionality control.</li>
+                </ul>
+            </div>
+
+            <div>
+                <h3>Junior Software Engineer | EPAM Systems | Jul 2019 – Jul 2020</h3>
+                <ul>
+                    <li>Developed a Spring-based console app for managerial performance reporting.</li>
+                    <li>Conducted performance testing using Gatling, achieving 5k transactions per second.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Education</h2>
+            <ul class="education">
+                <li>
+                    <strong>Government College of Engineering, Karad</strong> | Jul 2014 - May 2018
+                    <br>Bachelor of Information Technology | First Class with Distinction
+                    <br>Key Courses: OOP in Java, Computer Networks, Algorithms, Operating Systems
+                </li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2>Personal Projects</h2>
+            <ul class="projects">
+                <li>
+                    <strong>Real-Time Attendance System:</strong>
+                    Designed and developed a solution using OpenCV for face recognition and attendance reporting.
+                </li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2>Achievements</h2>
+            <ul class="achievements">
+                <li>Received "Pat on the Back" award at EPAM for automating performance reporting.</li>
+                <li>Recognized as part of the best team for developing open banking APIs.</li>
+            </ul>
+        </section>
+    </div>
+
+</div>
+
+<script>
+    const linkedinLink = document.getElementById('linkedin-link');
+    const linkedinBadge = document.querySelector('.linkedin-badge');
+
+    // Show the LinkedIn badge when the LinkedIn link is clicked
+    // linkedinLink.addEventListener('click', (event) => {
+    //     event.stopPropagation(); // Prevent event from bubbling up
+    //     linkedinBadge.classList.add('show');
+    // });
+
+    // // Close the LinkedIn badge if the user clicks outside the badge or the LinkedIn link
+    // document.addEventListener('click', (event) => {
+    //     if (!linkedinBadge.contains(event.target) && event.target !== linkedinLink) {
+    //         linkedinBadge.classList.remove('show');
+    //     }
+    // });
+
+    // // Prevent closing the badge when clicking inside the badge
+    // linkedinBadge.addEventListener('click', (event) => {
+    //     event.stopPropagation(); // Prevent event from bubbling up
+    // });
+</script>
+
+</body>
+</html>
