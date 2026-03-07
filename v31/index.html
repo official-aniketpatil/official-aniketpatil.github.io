@@ -172,6 +172,28 @@
   /* Viewfinder */
   .viewfinder-wrap{position:relative;flex:1;background:#000;min-height:0;overflow:hidden;}
   #camVideo{width:100%;height:100%;object-fit:cover;display:block;}
+  #sourceVideo{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px;}
+  .screen-share-state{
+    position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    background:
+      radial-gradient(circle at top, rgba(0,180,255,.12), transparent 45%),
+      linear-gradient(160deg, rgba(5,8,16,.96), rgba(8,13,26,.98));
+    z-index:2;
+  }
+  .viewfinder-wrap.screen-mode #camVideo{display:none;}
+  .viewfinder-wrap.screen-mode .screen-share-state{display:flex;}
+  .screen-card{
+    width:min(540px,88vw);padding:26px 24px;border-radius:16px;
+    border:1px solid rgba(0,180,255,.22);
+    background:rgba(7,13,24,.92);box-shadow:0 18px 48px rgba(0,0,0,.42);
+    text-align:center;
+  }
+  .screen-card-icon{font-size:2rem;color:var(--blue);margin-bottom:10px;}
+  .screen-card-title{
+    font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.18em;color:var(--text);
+  }
+  .screen-card-sub{margin-top:8px;font-size:.58rem;line-height:1.9;letter-spacing:.08em;color:var(--text2);}
+  .screen-card-meta{margin-top:12px;font-size:.52rem;letter-spacing:.12em;color:var(--green);}
   .vf-overlay{position:absolute;inset:0;pointer-events:none;}
   /* corner brackets */
   .vfc{position:absolute;width:26px;height:26px;opacity:.55;}
@@ -190,6 +212,27 @@
   .vfd-val{font-size:.54rem;color:var(--blue);margin-top:1px;}
   .flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:10;transition:opacity .04s;}
   .flash.go{opacity:1;}
+  .screen-stage{
+    display:none;flex-shrink:0;position:relative;overflow:hidden;
+    margin:10px 12px 0;border:1px solid rgba(0,180,255,.18);border-radius:14px;
+    background:linear-gradient(160deg,rgba(7,13,24,.96),rgba(8,13,26,.98));
+    min-height:180px;max-height:34vh;
+  }
+  .screen-stage.active{display:block;}
+  .screen-stage video{width:100%;height:100%;display:block;object-fit:contain;background:#000;}
+  .screen-stage-info{
+    position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;
+    gap:10px;z-index:2;pointer-events:none;
+  }
+  .screen-stage-pill{
+    padding:6px 10px;border-radius:999px;background:rgba(5,8,16,.8);border:1px solid rgba(0,180,255,.2);
+    font-size:.5rem;letter-spacing:.12em;color:var(--text2);backdrop-filter:blur(8px);
+  }
+  .screen-stage-empty{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    color:var(--text2);text-align:center;padding:22px;
+  }
+  .screen-stage-empty b{color:var(--text);}
   .cam-init{
     position:absolute;inset:0;display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:14px;
@@ -605,8 +648,30 @@
     <button class="loc-toggle off" id="locToggle" onclick="toggleLocation()">📍 OFF</button>
   </div>
 
-  <div class="viewfinder-wrap">
+  <div class="screen-stage" id="screenStage">
+    <video id="screenStageVideo" autoplay playsinline muted></video>
+    <div class="screen-stage-info">
+      <div class="screen-stage-pill" id="screenStageLabel">SCREEN SHARE</div>
+      <div class="screen-stage-pill">PINNED AT TOP</div>
+    </div>
+    <div class="screen-stage-empty" id="screenStageEmpty">
+      <div style="font-size:1.6rem">🖥</div>
+      <div><b>No live screen share</b></div>
+      <div>When a participant shares their screen, it appears here.</div>
+    </div>
+  </div>
+
+  <div class="viewfinder-wrap" id="viewfinderWrap">
     <video id="camVideo" autoplay playsinline muted></video>
+    <video id="sourceVideo" autoplay playsinline muted></video>
+    <div class="screen-share-state" id="screenShareState">
+      <div class="screen-card">
+        <div class="screen-card-icon">🖥</div>
+        <div class="screen-card-title">SCREEN SHARING ACTIVE</div>
+        <div class="screen-card-sub" id="screenShareHint">Your display is being shared to the room.</div>
+        <div class="screen-card-meta" id="screenShareMeta">LIVE OUTPUT ROUTED TO PEERS</div>
+      </div>
+    </div>
     <div class="vf-overlay">
       <div class="vfc tl"></div><div class="vfc tr"></div>
       <div class="vfc bl"></div><div class="vfc br"></div>
@@ -645,6 +710,7 @@
   <div class="capture-bar">
     <div class="cap-side">
       <button class="icon-btn" id="pauseBtn" onclick="togglePause()">⏸</button>
+      <button class="icon-btn" id="screenBtn" onclick="toggleScreen()" title="Share screen">🖥</button>
       <button class="icon-btn" onclick="switchCamera()">⟳</button>
     </div>
     <button class="capture-btn" id="captureBtn" onclick="captureAndShare()" title="Capture photo">
@@ -655,6 +721,7 @@
       <div>PEERS <span class="v" id="capPeers">0</span></div>
       <div>DATA <span class="v" id="dataUsage">0 KB</span></div>
       <div>LINK <span class="v" id="connStrength">CHECKING</span></div>
+      <div>TIME <span class="v" id="sessionDuration">00:00</span></div>
     </div>
   </div>
 </div>
@@ -758,6 +825,7 @@ let memberMap={};        // pid→{name,gps,lastSeen,emoji,isSelf?}
 let feedItems=[], feedUnread=0;
 let gpsData=null, gpsWatcher=null, locationOn=false;
 let camStream=null, facingMode='environment';
+let screenStream=null, isScreenSharing=false;
 let cameraPaused=false, myMediaStream=null;
 let myVideoOn=true, myAudioOn=true;
 let mediaCalls={}, peerAudios={}, peerStates={};
@@ -769,6 +837,8 @@ let connectionMonitorTimer=null;
 let networkUsage={sentApp:0,recvApp:0,sentMedia:0,recvMedia:0};
 let statsSnapshots={};
 let connectionStrength={label:'CHECKING',color:'var(--amber)'};
+let peerScreenState={};
+let sessionStart=null, durationTimer=null;
 
 const AVATARS=['🧑','👨','👩','🧔','👱','🧒','👴','👵','🧑‍💻','🧑‍🔧'];
 const RECONNECT_MS=5000;
@@ -803,6 +873,71 @@ function formatBytes(bytes){
 function totalDataUsage(){
   return networkUsage.sentApp+networkUsage.recvApp+networkUsage.sentMedia+networkUsage.recvMedia;
 }
+function activeVideoStream(){
+  return isScreenSharing&&screenStream?screenStream:camStream;
+}
+function activeVideoTracks(){
+  return activeVideoStream()?.getVideoTracks()||[];
+}
+function bindSourceVideo(stream){
+  const source=$('sourceVideo');
+  source.srcObject=stream||null;
+  if(stream) source.play().catch(()=>{});
+}
+function updatePreviewMode(){
+  const wrap=$('viewfinderWrap');
+  const cam=$('camVideo');
+  const hint=$('screenShareHint');
+  const meta=$('screenShareMeta');
+  if(isScreenSharing&&screenStream){
+    const track=screenStream.getVideoTracks()[0];
+    const settings=track?.getSettings?.()||{};
+    const surface=settings.displaySurface?String(settings.displaySurface).toUpperCase():'SCREEN';
+    const label=track?.label?.trim()||'Current display';
+    wrap.classList.add('screen-mode');
+    cam.srcObject=null;
+    hint.textContent='Recursive tab preview is hidden locally to keep screen share readable.';
+    meta.textContent=`${surface} · ${label}`;
+  }else{
+    wrap.classList.remove('screen-mode');
+    cam.srcObject=camStream;
+    if(camStream) cam.play().catch(()=>{});
+    hint.textContent='Your display is being shared to the room.';
+    meta.textContent='LIVE OUTPUT ROUTED TO PEERS';
+  }
+}
+function activeScreenSharer(){
+  if(isScreenSharing&&screenStream) return '__self__';
+  return Object.entries(peerScreenState).find(([,state])=>state?.active)?.[0]||null;
+}
+function renderScreenStage(){
+  const stage=$('screenStage');
+  const vid=$('screenStageVideo');
+  const empty=$('screenStageEmpty');
+  const label=$('screenStageLabel');
+  const pid=activeScreenSharer();
+
+  if(!pid){
+    stage.classList.remove('active');
+    vid.srcObject=null;
+    empty.style.display='flex';
+    label.textContent='SCREEN SHARE';
+    return;
+  }
+
+  stage.classList.add('active');
+  empty.style.display='none';
+  const sharer=pid==='__self__'
+    ? {name:myName||'You',active:true}
+    : peerScreenState[pid];
+  const name=sharer?.name||memberMap[pid]?.name||'Participant';
+  label.textContent=`${name.toUpperCase()} PRESENTING`;
+
+  const currentStream=pid==='__self__'
+    ? ($('sourceVideo').srcObject||$('selfPreview').srcObject||null)
+    : ($('pvid-'+pid)?.srcObject||null);
+  if(currentStream) vid.srcObject=currentStream;
+}
 function renderNetworkStats(){
   const usage=$('dataUsage');
   if(usage) usage.textContent=formatBytes(totalDataUsage());
@@ -811,11 +946,20 @@ function renderNetworkStats(){
     strength.textContent=connectionStrength.label;
     strength.style.color=connectionStrength.color;
   }
+  const dur=$('sessionDuration');
+  if(dur&&sessionStart){
+    const s=Math.floor((Date.now()-sessionStart)/1000);
+    const m=Math.floor(s/60), h=Math.floor(m/60);
+    dur.textContent=h>0?`${h}:${String(m%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`:`${m}:${String(s%60).padStart(2,'0')}`;
+  }
 }
 function resetNetworkStats(){
   networkUsage={sentApp:0,recvApp:0,sentMedia:0,recvMedia:0};
   statsSnapshots={};
   connectionStrength={label:'CHECKING',color:'var(--amber)'};
+  sessionStart=Date.now();
+  if(durationTimer) clearInterval(durationTimer);
+  durationTimer=setInterval(renderNetworkStats,1000);
   renderNetworkStats();
 }
 function trackAppData(direction,data){
@@ -906,6 +1050,10 @@ function stopConnectionMonitor(){
   if(connectionMonitorTimer){
     clearInterval(connectionMonitorTimer);
     connectionMonitorTimer=null;
+  }
+  if(durationTimer){
+    clearInterval(durationTimer);
+    durationTimer=null;
   }
 }
 async function startPeerFlow(){
@@ -1008,7 +1156,9 @@ function leaveRoom(){
 
   // Stop camera & audio tracks
   if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+  if(screenStream){ screenStream.getTracks().forEach(t=>t.stop()); screenStream=null; }
   if(myMediaStream){ myMediaStream.getTracks().forEach(t=>t.stop()); myMediaStream=null; }
+  bindSourceVideo(null);
 
   // Close all media calls
   Object.values(mediaCalls).forEach(c=>{ try{c.close();}catch(_){} });
@@ -1029,11 +1179,15 @@ function leaveRoom(){
   myVideoOn=true; myAudioOn=true; cameraPaused=false;
   peerStates={}; audioUnlockEls=[];
   peerFlowStarted=false;
+  isScreenSharing=false;
+  peerScreenState={};
   myName=''; myRoom=''; myPeerId=''; isCreator=false;
 
   // Reset UI
   document.getElementById('topRoom').textContent='------';
   document.getElementById('camVideo').srcObject=null;
+  document.getElementById('sourceVideo').srcObject=null;
+  document.getElementById('screenStageVideo').srcObject=null;
   document.getElementById('selfPreview').srcObject=null;
   document.getElementById('camInit').style.display='flex';
   document.getElementById('feedList').innerHTML='<div class="empty-state"><div class="empty-icon">📡</div><div>WAITING FOR ACTIVITY</div></div>';
@@ -1043,6 +1197,8 @@ function leaveRoom(){
   document.getElementById('dataUsage').textContent='0 KB';
   document.getElementById('connStrength').textContent='CHECKING';
   document.getElementById('connStrength').style.color='var(--amber)';
+  document.getElementById('sessionDuration').textContent='00:00';
+  sessionStart=null;
   document.getElementById('gpsDot').className='gps-dot';
   document.getElementById('gpsCoords').textContent='Location off';
   document.getElementById('gpsAcc').textContent='';
@@ -1059,6 +1215,8 @@ function leaveRoom(){
   updateBadges(); switchTab('capture');
   dot(''); setStatus('---','var(--muted)');
   resetNetworkStats();
+  updatePreviewMode();
+  renderScreenStage();
 
   // Show join screen
   document.getElementById('joinScreen').style.display='flex';
@@ -1344,7 +1502,7 @@ function setupConn(conn){
     connections[pid] = conn;
     updatePeerCount();
     setStatus('CONNECTED','var(--green)'); dot('ok');
-    send(conn, { type:'hello', name:myName, gps:gpsData ? gpsObj(gpsData) : null });
+    send(conn, { type:'hello', name:myName, gps:gpsData ? gpsObj(gpsData) : null, screenShare:isScreenSharing });
     if(!memberMap[pid])
       memberMap[pid] = { name:'…', gps:null, lastSeen:Date.now(), emoji:'👤' };
     schedMembersRender();
@@ -1417,13 +1575,14 @@ function handleMsg(from,msg){
   switch(msg.type){
     case 'hello':
       memberMap[from]={name:msg.name||'?',gps:msg.gps||null,lastSeen:Date.now(),emoji:avatar(msg.name||'?')};
+      peerScreenState[from]={active:!!msg.screenShare,name:msg.name||'?'};
       toast(`👋 ${msg.name} joined`);
       addFeedItem({type:'sys',text:`${msg.name} joined`,ts:Date.now()});
       // mesh back
       if(!connections[from]?.open) setupConn(peer.connect(from,{reliable:true,serialization:'json'}));
       // share peer list
       send(connections[from],{type:'peerlist',peers:Object.keys(connections).filter(p=>p!==from)});
-      schedMembersRender(); break;
+      schedMembersRender(); renderScreenStage(); break;
 
     case 'peerlist':
       (msg.peers||[]).forEach(pid=>{
@@ -1442,6 +1601,11 @@ function handleMsg(from,msg){
     case 'chat':
       addFeedItem({type:'chat',from:msg.name,text:msg.text,ts:msg.ts,mine:false});
       if(currentTab!=='feed'){ feedUnread++; updateBadges(); } break;
+
+    case 'screen-state':
+      peerScreenState[from]={active:!!msg.active,name:msg.name||memberMap[from]?.name||'?'};
+      renderScreenStage();
+      break;
 
     case 'av-state': onPeerAV(from,msg); break;
     case 'sys': addFeedItem({type:'sys',text:msg.text,ts:msg.ts}); break;
@@ -1511,7 +1675,8 @@ async function startCamera(){
     camStream=await navigator.mediaDevices.getUserMedia({
       video:{facingMode,width:{ideal:1920},height:{ideal:1080}},audio:false
     });
-    $('camVideo').srcObject=camStream;
+    bindSourceVideo(camStream);
+    updatePreviewMode();
     $('camInit').style.display='none';
     cameraPaused=false; updatePauseUI();
     await buildMediaStream();
@@ -1520,29 +1685,65 @@ async function startCamera(){
 
 async function buildMediaStream(){
   if(myMediaStream) myMediaStream.getAudioTracks().forEach(t=>t.stop());
+  const videoTracks=activeVideoTracks();
+  if(!videoTracks.length) return;
   const prev=$('selfPreview');
   try{
     const aud=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,sampleRate:48000},video:false});
-    myMediaStream=new MediaStream([...camStream.getVideoTracks(),...aud.getAudioTracks()]);
+    myMediaStream=new MediaStream([...videoTracks,...aud.getAudioTracks()]);
   }catch(_){
-    myMediaStream=new MediaStream([...camStream.getVideoTracks()]);
+    myMediaStream=new MediaStream([...videoTracks]);
   }
-  prev.srcObject=new MediaStream(camStream.getVideoTracks());
+  prev.srcObject=new MediaStream(videoTracks);
   startConnectionMonitor();
   // Stream is ready — drain any peers that were waiting
   drainMediaQueue();
-  // Re-call all already-connected peers with the new stream
-  Object.keys(connections).forEach(callPeer);
+  await syncOutgoingMedia();
+}
+
+async function toggleScreen(){
+  if(!isScreenSharing){
+    try{
+      screenStream=await navigator.mediaDevices.getDisplayMedia({video:{width:{ideal:1920},height:{ideal:1080}},audio:true});
+      isScreenSharing=true;
+      bindSourceVideo(screenStream);
+      updatePreviewMode();
+      const btn=$('screenBtn');
+      btn.textContent='📷';
+      btn.style.borderColor='var(--green)';
+      screenStream.getVideoTracks()[0].onended=()=>toggleScreen();
+      await buildMediaStream();
+      broadcast({type:'screen-state',active:true,name:myName});
+      toast('🖥 Screen sharing started');
+    }catch(e){
+      toast('⚠ Screen share cancelled');
+    }
+  } else {
+    if(screenStream){ screenStream.getTracks().forEach(t=>t.stop()); screenStream=null; }
+    isScreenSharing=false;
+    bindSourceVideo(camStream);
+    updatePreviewMode();
+    const btn=$('screenBtn');
+    btn.textContent='🖥';
+    btn.style.borderColor='';
+    await startCamera();
+    broadcast({type:'screen-state',active:false,name:myName});
+    toast('📷 Camera resumed');
+  }
 }
 
 async function switchCamera(){
+  if(isScreenSharing){
+    toast('⚠ Stop screen share before switching camera');
+    return;
+  }
   facingMode=facingMode==='environment'?'user':'environment';
   await startCamera();
 }
 
 function toggleMyVideo(){
   myVideoOn=!myVideoOn;
-  [myMediaStream,camStream].forEach(s=>s?.getVideoTracks().forEach(t=>t.enabled=myVideoOn));
+  [myMediaStream,camStream,screenStream].forEach(s=>s?.getVideoTracks().forEach(t=>t.enabled=myVideoOn));
   const btn=$('btnCam');
   btn.textContent=myVideoOn?'📷':'🚫'; btn.classList.toggle('off',!myVideoOn);
   $('selfPreview').style.opacity=myVideoOn?'1':'0.2';
@@ -1558,9 +1759,10 @@ function toggleMyAudio(){
 }
 
 function togglePause(){
-  if(!camStream){ toast('⚠ Camera not active'); return; }
+  const stream=activeVideoStream();
+  if(!stream){ toast(isScreenSharing?'⚠ Screen share not active':'⚠ Camera not active'); return; }
   cameraPaused=!cameraPaused;
-  const vid=$('camVideo'), tracks=camStream.getVideoTracks();
+  const vid=isScreenSharing?$('sourceVideo'):$('camVideo'), tracks=stream.getVideoTracks();
   if(cameraPaused){
     vid.pause(); tracks.forEach(t=>t.enabled=false);
     myMediaStream?.getVideoTracks().forEach(t=>t.enabled=false);
@@ -1597,6 +1799,43 @@ const pendingCalls = new Set(); // pids waiting for myMediaStream
 function callPeerWhenReady(pid){
   if(myMediaStream){ callPeer(pid); }
   else             { pendingCalls.add(pid); }
+}
+
+async function syncOutgoingMedia(){
+  const peersNeedingRecall = [];
+  const nextVideo = myMediaStream?.getVideoTracks?.()[0] || null;
+  const nextAudio = myMediaStream?.getAudioTracks?.()[0] || null;
+
+  for(const [pid, call] of Object.entries(mediaCalls)){
+    const pc = call?.peerConnection;
+    if(!pc){
+      peersNeedingRecall.push(pid);
+      continue;
+    }
+
+    try{
+      const senders = pc.getSenders ? pc.getSenders() : [];
+      const videoSender = senders.find(sender => sender.track?.kind === 'video' || sender.track == null);
+      const audioSender = senders.find(sender => sender.track?.kind === 'audio');
+
+      const ops = [];
+      if(videoSender && videoSender.replaceTrack) ops.push(videoSender.replaceTrack(nextVideo));
+      else peersNeedingRecall.push(pid);
+
+      if(audioSender && audioSender.replaceTrack) ops.push(audioSender.replaceTrack(nextAudio));
+      else if(nextAudio) peersNeedingRecall.push(pid);
+
+      if(ops.length) await Promise.allSettled(ops);
+    }catch(_){
+      peersNeedingRecall.push(pid);
+    }
+  }
+
+  const uniquePeers = [...new Set([
+    ...Object.keys(connections).filter(pid => !mediaCalls[pid]),
+    ...peersNeedingRecall,
+  ])];
+  uniquePeers.forEach(callPeerWhenReady);
 }
 
 function drainPendingCalls(){
@@ -1725,6 +1964,14 @@ function attachPeerStream(pid, stream){
       vid.srcObject = vs;
       vid.play().catch(()=>{});
     }
+    if(activeScreenSharer()===pid){
+      const stageVid=$('screenStageVideo');
+      if(stageVid.srcObject !== vs){
+        stageVid.srcObject=vs;
+        stageVid.play().catch(()=>{});
+      }
+      renderScreenStage();
+    }
     const ptc = $('ptc-'+pid); if(ptc) ptc.style.display = 'none';
   }
 
@@ -1747,8 +1994,10 @@ function cleanupPeer(pid){
   try{ if(mediaCalls[pid]){ mediaCalls[pid].close(); delete mediaCalls[pid]; } }catch(_){}
   if(peerAudios[pid]){ peerAudios[pid].srcObject=null; peerAudios[pid].remove(); delete peerAudios[pid]; }
   delete peerStates[pid];
+  delete peerScreenState[pid];
   pendingCalls.delete(pid);
   pendingCalls.delete('answer:'+pid);
+  renderScreenStage();
 }
 
 function removePeerTile(pid){
@@ -1786,12 +2035,12 @@ function onPeerAV(from,msg){
 // CAPTURE
 // ════════════════════════════════
 async function captureAndShare(){
-  if(!$('camVideo').srcObject){ toast('⚠ Camera not active'); return; }
+  if(!$('sourceVideo').srcObject){ toast(isScreenSharing?'⚠ Screen share not active':'⚠ Camera not active'); return; }
   if(cameraPaused){ toast('⚠ Resume camera first'); return; }
 
   const f=$('flashEl'); f.classList.add('go'); setTimeout(()=>f.classList.remove('go'),110);
 
-  const vid=$('camVideo'), c=$('snap');
+  const vid=$('sourceVideo'), c=$('snap');
   c.width=vid.videoWidth||1280; c.height=vid.videoHeight||720;
   const ctx=c.getContext('2d'); ctx.drawImage(vid,0,0);
 
