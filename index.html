@@ -2318,20 +2318,14 @@
 
         peer.on("error", (e) => {
           console.warn("[peer]", e.type, e);
-          if (e.type === "unavailable-id" && isCreator) {
-            hostReclaimAttempts++;
-            if (hostReclaimAttempts > 10) {
-              toast("⚠ Cannot reclaim host ID - try different room code");
-              setStatus("HOST ID TAKEN", "var(--red)");
-              return;
-            }
-            const delay = Math.min(5000 * hostReclaimAttempts, 30000);
-            toast(`Reclaiming host ID... (${hostReclaimAttempts}/10)`);
-            setTimeout(() => {
+          if (e.type === "unavailable-id") {
+            if (isCreator) {
+              toast("Room exists - joining instead...");
+              isCreator = false;
               if (peer) peer.destroy();
               peer = null;
-              initPeer();
-            }, delay);
+              setTimeout(initPeer, 1000);
+            }
             return;
           }
           if (e.type === "peer-unavailable") {
