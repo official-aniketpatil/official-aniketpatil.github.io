@@ -116,6 +116,7 @@
   .room-badge{
     font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.32em;
     color:var(--amber);text-shadow:0 0 10px rgba(255,171,0,.3);
+    cursor:pointer;-webkit-tap-highlight-color:transparent;
   }
   .conn-status{font-size:.46rem;color:var(--muted);letter-spacing:.1em;}
   .topbar-right{display:flex;align-items:center;gap:8px;}
@@ -586,7 +587,7 @@
 <div class="topbar">
   <div class="logo">GEO<span style="-webkit-text-fill-color:var(--green);color:var(--green);">LOG</span></div>
   <div class="topbar-center">
-    <div class="room-badge" id="topRoom">------</div>
+    <div class="room-badge" id="topRoom" onclick="copyRoomCode()" title="Tap to copy">------</div>
     <div class="conn-status" id="connStatus">---</div>
   </div>
   <div class="topbar-right">
@@ -1061,6 +1062,13 @@ function leaveRoom(){
 
   // Show join screen
   document.getElementById('joinScreen').style.display='flex';
+}
+
+function copyRoomCode(){
+  if(!myRoom) return;
+  navigator.clipboard.writeText(myRoom)
+    .then(()=>toast(`📋 Code "${myRoom}" copied`))
+    .catch(()=>toast('Room: '+myRoom));
 }
 
 // ════════════════════════════════
