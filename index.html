@@ -2257,7 +2257,25 @@
       function initPeer() {
         const pid = isCreator ? hostId() : uniqId();
         setStatus("CONNECTING…", "var(--amber)");
-        peer = new Peer(pid, { debug: 0 });
+        peer = new Peer(pid, {
+          debug: 0,
+          config: {
+            iceServers: [
+              { urls: "stun:stun.l.google.com:19302" },
+              { urls: "stun:stun1.l.google.com:19302" },
+              {
+                urls: "turn:a.relay.metered.ca:80",
+                username: "87e869b2239d8dfa5ca0fc47",
+                credential: "Sy5iCvXuD+xgLRvC"
+              },
+              {
+                urls: "turn:a.relay.metered.ca:443",
+                username: "87e869b2239d8dfa5ca0fc47",
+                credential: "Sy5iCvXuD+xgLRvC"
+              }
+            ]
+          }
+        });
 
         peer.on("open", (id) => {
           myPeerId = id;
@@ -2342,7 +2360,25 @@
         peer = null;
         connections = {};
         isCreator = true;
-        peer = new Peer(hostId(), { debug: 0 });
+        peer = new Peer(hostId(), {
+          debug: 0,
+          config: {
+            iceServers: [
+              { urls: "stun:stun.l.google.com:19302" },
+              { urls: "stun:stun1.l.google.com:19302" },
+              {
+                urls: "turn:a.relay.metered.ca:80",
+                username: "87e869b2239d8dfa5ca0fc47",
+                credential: "Sy5iCvXuD+xgLRvC"
+              },
+              {
+                urls: "turn:a.relay.metered.ca:443",
+                username: "87e869b2239d8dfa5ca0fc47",
+                credential: "Sy5iCvXuD+xgLRvC"
+              }
+            ]
+          }
+        });
         peer.on("open", (id) => {
           myPeerId = id;
           setStatus("HOSTING", "var(--green)");
