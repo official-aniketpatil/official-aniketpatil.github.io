@@ -1999,7 +1999,8 @@
       let audioUnlockEls = [];
       let currentTab = "capture";
       let hostRetryTimer = null,
-        membersRenderTimer = null;
+        membersRenderTimer = null,
+        hostRetryCount = 0;
 
       const AVATARS = [
         "🧑",
@@ -2321,11 +2322,12 @@
         peer.on("error", (e) => {
           console.warn("[peer]", e.type, e);
           if (e.type === "unavailable-id" && isCreator) {
-            toast("Room exists — joining…");
-            isCreator = false;
-            peer.destroy();
-            peer = null;
-            setTimeout(initPeer, 500);
+            toast("Reclaiming host ID...");
+            setTimeout(() => {
+              peer.destroy();
+              peer = null;
+              initPeer();
+            }, 3000);
             return;
           }
           if (e.type === "peer-unavailable") {
@@ -2357,7 +2359,19 @@
         setTimeout(() => {
           if (conn && !conn.open) {
             conn.close();
-            hostRetryTimer = setTimeout(connectHost, 3000);
+            hostRetryCount++;
+            if (hostRetryCount > 3) {
+              toast("🎯 No host found - becoming host...");
+              hostRetryCount = 0;
+              isCreator = true;
+              peer.destroy();
+              peer = null;
+              setTimeout(initPeer, 500);
+            } else {
+              hostRetryTimer = setTimeout(connectHost, 3000);
+            }
+          } else if (conn.open) {
+            hostRetryCount = 0;
           }
         }, 8000);
       }
