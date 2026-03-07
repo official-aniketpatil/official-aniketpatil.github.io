@@ -2016,6 +2016,25 @@
         "🧑‍🔧",
       ];
       const RECONNECT_MS = 5000;
+      const CONNECT_TIMEOUT_MS = 60000;
+      const HOST_CONNECT_EVAL_MS = 12000;
+      const HOST_TAKEOVER_ATTEMPTS = 8;
+      const ICE_SERVERS = [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun2.l.google.com:19302" },
+        { urls: "stun:stun3.l.google.com:19302" },
+        { urls: "stun:stun4.l.google.com:19302" },
+        {
+          urls: [
+            "turn:openrelay.metered.ca:80",
+            "turn:openrelay.metered.ca:443",
+            "turn:openrelay.metered.ca:443?transport=tcp",
+          ],
+          username: "openrelayproject",
+          credential: "openrelayproject",
+        },
+      ];
 
       // ════════════════════════════════
       // STORAGE
@@ -2291,10 +2310,8 @@
           secure: true,
           pingInterval: 5000,
           config: {
-            iceServers: [
-              { urls: "stun:stun.l.google.com:19302" },
-              { urls: "stun:stun1.l.google.com:19302" },
-            ],
+            iceServers: ICE_SERVERS,
+            iceTransportPolicy: "all",
           },
         });
 
@@ -2362,7 +2379,7 @@
             conn.close();
             hostRetryCount++;
             
-            if (hostRetryCount > 4) {
+            if (hostRetryCount > HOST_TAKEOVER_ATTEMPTS) {
               toast("🎯 Becoming host...");
               hostRetryCount = 0;
               isCreator = true;
@@ -2375,7 +2392,7 @@
           } else if (conn.open) {
             hostRetryCount = 0;
           }
-        }, 5000);
+        }, HOST_CONNECT_EVAL_MS);
       }
 
       function onPeerLeft(pid) {
@@ -2407,7 +2424,7 @@
             console.warn("[conn] timeout", conn.peer);
             conn.close();
           }
-        }, 10000);
+        }, CONNECT_TIMEOUT_MS);
 
         conn.on("open", () => {
           clearTimeout(timeout);
